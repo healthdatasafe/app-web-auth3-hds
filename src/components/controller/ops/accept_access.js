@@ -19,6 +19,20 @@ async function acceptAccess (ctx: Context): Promise<void> {
     }
   }
 
+  // the following allows to ensure parentStreams existence
+  const clientData = ctx.accessState['clientData'];
+  if (clientData && clientData['app-web-auth:ensureBaseStreams']) {
+    const apiCallsEnsureBaseStreams = clientData['app-web-auth:ensureBaseStreams'].map(params => ({
+      method: 'streams.create',
+      params,
+    }));
+    const createdBaseStreams = await ctx.pryvService.createAppAccess(
+      ctx.user.username,
+      ctx.user.personalToken,
+      apiCallsEnsureBaseStreams);
+    console.log({ createdBaseStreams });
+  }
+
   const requestData = {
     permissions: ctx.checkAppResult.checkedPermissions,
     name: ctx.accessState.requestingAppId,
@@ -29,12 +43,15 @@ async function acceptAccess (ctx: Context): Promise<void> {
     'deviceName',
     'token',
     'expireAfter',
-    'clientData',
   ].forEach((key: string) => {
     if (typeof ctx.accessState[key] !== 'undefined') {
       requestData[key] = ctx.accessState[key];
     }
   });
+
+  if (Object.keys(clientData).length > 0) {
+    requestData.clientData = clientData;
+  }
 
   const appAccess = await ctx.pryvService.createAppAccess(
     ctx.user.username,
