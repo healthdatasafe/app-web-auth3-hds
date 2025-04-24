@@ -29,8 +29,8 @@ These web pages are the "popup frame" that opens during the [app authorization p
   * [Prerequisites](#prerequisites)
   * [Commands](#commands)
   * [Tests](#tests)
-    + [rec-la for local manual test](#rec-la-for-local-manual-test)
-      - [Testing Auth flow, with Rec-la](#testing-auth-flow-with-rec-la)
+    + [backloop.dev for local manual test](#backloop.dev-for-local-manual-test)
+      - [Testing Auth flow, with backloop.dev](#testing-auth-flow-with-backloop.dev)
     + [Vue.js testing](#vuejs-testing)
     + [Publish to github pages](#publish-to-github-pages)
     + [Publish in Open Pryv.io environment](#publish-in-open-pryvio-environment)
@@ -189,7 +189,7 @@ Node v12, yarn v1
 | Install dependencies                     | `yarn install`                  |
 | Create distribution in dist/             | `yarn build`                    |
 | Run the app locally in dev mode          | `yarn start`                    |
-| Serve dist/ content with rec-la SSL cert | `yarn webserver`                |
+| Serve dist/ content with backloop.dev SSL cert | `yarn webserver`                |
 | To manually test the auth flow           | `yarn webserver-test`           |
 | Run unit tests (-u to updates snapshots) | `yarn unit`                     |
 | Run E2E tests                            | `yarn e2e`                      |
@@ -199,9 +199,9 @@ Node v12, yarn v1
 
 ## Tests
 
-### rec-la for local manual test
+### backloop.dev for local manual test
 
-[rec-la](https://github.com/pryv/rec-la) Provides a Webserver and SSL certificate pointing to localhost for testing purposes. 
+[backloop.dev](https://github.com/perki/backloop.dev) Provides a Webserver and SSL certificate pointing to localhost for testing purposes. 
 
 Run: 
 
@@ -210,13 +210,13 @@ Run:
 
 Open one of the entrypoint you need to test such as:
 
- - [https://l.rec.la:4443/access/signinhub.html?pryvServiceInfoUrl=https://reg.pryv.me/service/info](https://l.rec.la:4443/access/signinhub.html?pryvServiceInfoUrl=https://reg.pryv.me/service/info)
+ - [https://l.backloop.dev:4443/access/signinhub.html?pryvServiceInfoUrl=https://reg.pryv.me/service/info](https://l.backloop.dev:4443/access/signinhub.html?pryvServiceInfoUrl=https://reg.pryv.me/service/info)
 
  Note: you can override default hardcoded serviceInfoUrl with the query parameter  `pryvServiceInfoUrl` as shown.
 
-#### Testing Auth flow, with Rec-la
+#### Testing Auth flow, with backloop.dev
 
-Once you have started `yarn webserver` also start `yarn webserver-test` and open [https://l.rec.la:5443/](https://l.rec.la:5443/).
+Once you have started `yarn webserver` also start `yarn webserver-test` and open [https://l.backloop.dev:5443/](https://l.backloop.dev:5443/).
 You might want to edit the page `./tests/webpage-auth/index.html`.
 
 ### Vue.js testing
