@@ -40,7 +40,7 @@
   // will handle the connection
   var connection = null;
 
-  let serviceInfoUrl = 'https://reg.pryv.me/service/infos';
+  let serviceInfoUrl = 'https://demo.datasafe.dev/reg/service/infos';
   // override serviceInfo if provided in the url. 
   serviceInfoUrl = Pryv.Browser.serviceInfoFromUrl() || serviceInfoUrl;
 
@@ -52,15 +52,30 @@
       requestingAppId: 'test-value-notes',
       requestedPermissions: [
         {
-          streamId: 'test',
-          defaultName: 'TEST',
+          streamId: 'body',
+          defaultName: 'Body', // expicitely give different name 
+          level: 'manage'
+        },
+        {
+          streamId: 'body-height',
+          defaultName: 'My Height', // expicitely give different name 
+          level: 'manage'
+        },
+        {
+          streamId: 'body-weight',
+          defaultName: 'My Weight',
           level: 'manage'
         }
       ],
       clientData: {
         'app-web-auth:description': {
           'type': 'note/txt', 'content': 'This is a consent message.'
-        }
+        },
+        'app-web-auth:ensureBaseStreams': [ // these should be created upfront
+          {id: 'body', name: 'Body metrics'},
+          {id: 'body-height', name: 'Body height', parentId: 'body'},
+          {id: 'body-weight', name: 'Body weight', parentId: 'body'}
+        ]
       },
       expiresAfter: 30,
       reclaDevel: ':4443/access/access.html'
