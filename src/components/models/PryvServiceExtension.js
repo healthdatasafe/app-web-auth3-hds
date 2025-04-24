@@ -119,6 +119,18 @@ Pryv.Service.prototype.createAppAccess = async function createAppAccess (
   return res.body.access;
 };
 
+// POST/core: call use batch call API
+Pryv.Service.prototype.userApiBatchCall = async function userApiBatchCall (
+  username: string, personalToken: string,
+  requestData: Object): Promise<Object> {
+  const res = await Pryv.utils.superagent
+    .post(this.apiEndpointForSync(username))
+    .set('accept', 'json')
+    .set('Authorization', personalToken)
+    .send(requestData);
+  return res.body;
+};
+
 // POST/core: delete an new  access
 Pryv.Service.prototype.deleteAppAccess = async function deleteAppAccess (
   username: string, personalToken: string,
