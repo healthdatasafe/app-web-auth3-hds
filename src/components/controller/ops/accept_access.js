@@ -26,7 +26,7 @@ async function acceptAccess (ctx: Context): Promise<void> {
       method: 'streams.create',
       params,
     }));
-    const createdBaseStreams = await ctx.pryvService.createAppAccess(
+    const createdBaseStreams = await ctx.pryvService.userApiBatchCall(
       ctx.user.username,
       ctx.user.personalToken,
       apiCallsEnsureBaseStreams);

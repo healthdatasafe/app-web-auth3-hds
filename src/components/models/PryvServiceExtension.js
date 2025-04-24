@@ -54,6 +54,7 @@ export type PryvService = {
   mfaVerify: (string, string, string) => Promise<string>,
   checkAppAccess: (string, string, Object) => Promise<AppCheck>,
   createAppAccess: (string, string, Object) => Promise<AppAccess>,
+  userApiBatchCall: (string, string, Object) => Promise<Object>,
   deleteAppAccess: (string, string, string) => Promise<AppAccess>,
   getAvailableHostings: (void) => Promise<Hostings>,
   createUser: (string, string, string, string, string, string, string, ?string, ?string) => Promise<NewUser>,
