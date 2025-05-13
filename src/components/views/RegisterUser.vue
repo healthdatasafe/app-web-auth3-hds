@@ -48,11 +48,11 @@
       >Clear</v-btn>
 
       <div>
-        By registering you agree with our
+        By registering you agree with our<br>
         <a
-          target="_blank"
-          href="https://pryv.com/terms-of-use/">
-        terms of use</a>.
+          :href="serviceInfos.terms"
+          target="_blank">
+        terms and conditions</a>.
       </div>
     </v-form>
     <div v-if="ctx.isAccessRequest()">
@@ -84,6 +84,7 @@ export default {
     hostingsSelection: [],
     newUser: null,
     submitting: false,
+    serviceInfos: {},
     ctx: {},
     c: null,
     error: '',
@@ -97,6 +98,10 @@ export default {
     this.ctx = new Context(this.$route.query);
     await this.ctx.init();
     this.c = controllerFactory(this.ctx);
+    this.c
+      .getServiceInfo()
+      .then(this.showInfos)
+      .catch(this.showError);
     // Fill selector with available hostings, preselect first one
     this.c.loadHostings()
       .then(this.initHostings)
@@ -138,6 +143,9 @@ export default {
     },
     showError (error) {
       this.error = error.msg;
+    },
+    showInfos (infos) {
+      this.serviceInfos = infos;
     },
     generateRandomEmailIfNeeded () {
       if (this.email == null || (typeof this.email === 'string' && this.email.length === 0)) {
