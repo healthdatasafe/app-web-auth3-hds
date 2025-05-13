@@ -76,12 +76,12 @@
     <router-link
       :to="{ name: 'RegisterUser' }"
     ><h3>Create an account</h3></router-link
-    >
+    ><br><br>
 
     <router-link
       :to="{ name: 'ResetPassword' }"
     ><h3>Forgot password</h3></router-link
-    >
+    ><br>
 
     <router-link
       :to="{ name: 'ChangePassword' }"
