@@ -1,135 +1,45 @@
 {
   "name": "app-web-auth3",
-  "version": "1.0.0",
-  "description": "Pryv.io web pages for user registration, authentication & password reset.",
+  "version": "2.0.0",
+  "description": "HDS/Pryv web pages for user authentication, registration & password management.",
   "author": {
-    "name": "Pryv SA",
-    "email": "tech@pryv.com",
-    "url": "https://pryv.com"
+    "name": "HealthDataSafe",
+    "url": "https://www.healthdatasafe.ch"
   },
-  "contributors": [
-    "Thiébaud Modoux",
-    "Pierre-Mikael Legris"
-  ],
   "private": true,
   "license": "BSD-3-Clause",
+  "type": "module",
   "scripts": {
-    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
-    "start": "yarn run dev",
-    "lint": "eslint --ext .js,.vue src",
-    "build": "node build/build.js",
-    "unit": "./node_modules/.bin/jest tests/unit/",
-    "e2e": "node tests/run.js",
-    "e2eS": "node tests/run.js -s",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "setup": "sh scripts/setup.sh",
-    "upload": "sh scripts/upload.sh",
-    "clear": "rm -rf dist/ && yarn setup",
-    "webserver": "node node_modules/.bin/backloop.dev ./dist",
-    "webserver-test": "node node_modules/.bin/backloop.dev ./tests/webpage-auth/ 5443"
+    "webserver": "npx backloop.dev ./dist"
   },
   "dependencies": {
-    "lodash": "^4.17.20",
-    "marked": "^4.0.12",
-    "mkdirp": "0",
-    "pryv": "^2.0.7",
-    "backloop.dev": "latest",
-    "vue": "^2.5.2",
-    "vue-router": "^3.0.1",
-    "vuetify": "^1.0.0"
+    "hds-lib": "git+https://github.com/healthdatasafe/hds-lib-js.git",
+    "hds-style": "git+https://github.com/healthdatasafe/style-package.git",
+    "marked": "^15.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
-    "@vue/test-utils": "^1.0.0-beta.24",
-    "autoprefixer": "^7.1.2",
-    "babel-core": "^6.22.1",
-    "babel-eslint": "^9.0.0",
-    "babel-helper-vue-jsx-merge-props": "^2.0.3",
-    "babel-jest": "^23.4.2",
-    "babel-loader": "^7.1.1",
-    "babel-plugin-syntax-flow": "^6.18.0",
-    "babel-plugin-syntax-jsx": "^6.18.0",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-flow-strip-types": "^6.22.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-plugin-transform-vue-jsx": "^3.5.0",
-    "babel-preset-env": "^1.3.2",
-    "babel-preset-stage-2": "^6.22.0",
-    "chalk": "^2.0.1",
-    "copy-webpack-plugin": "^4.0.1",
-    "css-loader": "^0.28.0",
-    "eslint": "^5.5.0",
-    "eslint-config-standard": "^10.2.1",
-    "eslint-config-vue": "^2.0.2",
-    "eslint-friendly-formatter": "^3.0.0",
-    "eslint-loader": "^1.7.1",
-    "eslint-plugin-flowtype-errors": "^3.6.0",
-    "eslint-plugin-html": "^4.0.5",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-jest": "^21.22.1",
-    "eslint-plugin-node": "^5.2.0",
-    "eslint-plugin-promise": "^3.4.0",
-    "eslint-plugin-standard": "^3.0.1",
-    "eslint-plugin-testcafe": "^0.2.1",
-    "eslint-plugin-vue": "^4.7.1",
-    "extract-text-webpack-plugin": "^3.0.0",
-    "file-loader": "^1.1.4",
-    "flow-bin": "^0.80.0",
-    "friendly-errors-webpack-plugin": "^1.6.1",
-    "html-webpack-plugin": "^2.30.1",
-    "jest": "^23.5.0",
-    "jest-serializer-vue": "^2.0.2",
-    "node-notifier": "^8.0.1",
-    "optimize-css-assets-webpack-plugin": "^3.2.0",
-    "ora": "^1.2.0",
-    "portfinder": "^1.0.13",
-    "postcss-import": "^11.0.0",
-    "postcss-loader": "^2.0.8",
-    "postcss-url": "^7.2.1",
-    "rimraf": "^2.6.0",
-    "semver": "^5.3.0",
-    "shelljs": "^0.8.5",
-    "testcafe": "^0.22.0",
-    "uglifyjs-webpack-plugin": "^1.1.1",
-    "url-loader": "^0.5.8",
-    "vue-jest": "^2.6.0",
-    "vue-loader": "^13.3.0",
-    "vue-server-renderer": "^2.5.17",
-    "vue-style-loader": "^3.0.1",
-    "vue-template-compiler": "^2.5.17",
-    "webpack": "^3.6.0",
-    "webpack-bundle-analyzer": "^3.3.2",
-    "webpack-dev-server": "^3.1.11",
-    "webpack-merge": "^4.1.0"
-  },
-  "resolutions": {
-    "**/js-yaml": "^3.13.1",
-    "**/ssri": "^8.0.1",
-    "**/is-svg": "^4.2.2",
-    "yargs-parser": "^13.1.2"
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "backloop.dev": "latest",
+    "eslint": "^9.32.0",
+    "neostandard": "^0.12.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.32.0",
+    "vite": "^6.3.0"
   },
   "engines": {
-    "node": ">= 12.0.0",
-    "npm": ">= 6.0.0"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "vue"
-    ],
-    "transform": {
-      "^.+\\.js$": "<rootDir>/node_modules/babel-jest",
-      ".*\\.(vue)$": "<rootDir>/node_modules/vue-jest"
-    },
-    "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1"
-    },
-    "snapshotSerializers": [
-      "<rootDir>/node_modules/jest-serializer-vue"
-    ]
+    "node": ">=20"
   }
 }
