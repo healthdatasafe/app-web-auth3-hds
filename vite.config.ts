@@ -1,11 +1,13 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import backloop from 'vite-plugin-backloop.dev'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     tailwindcss(),
-    react()
+    react(),
+    ...(mode !== 'raw' ? [backloop('auth', 4443) as unknown as PluginOption] : [])
   ],
   build: {
     outDir: 'dist'
@@ -18,4 +20,4 @@ export default defineConfig({
       allow: ['..']
     }
   }
-})
+}))
