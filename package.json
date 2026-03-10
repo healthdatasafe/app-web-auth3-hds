@@ -16,6 +16,8 @@
     "preview": "vite preview",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:prod": "bash scripts/deploy-prod.sh",
     "setup": "sh scripts/setup.sh",
     "webserver": "npx backloop.dev ./dist"
   },

@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import backloop from 'vite-plugin-backloop.dev'
 
 export default defineConfig(({ mode }) => ({
+  envPrefix: ['VITE_', 'SERVICE_'],
   plugins: [
     tailwindcss(),
     react(),
@@ -13,7 +14,8 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist'
   },
   resolve: {
-    dedupe: ['react', 'react-dom']
+    dedupe: ['react', 'react-dom'],
+    preserveSymlinks: true
   },
   optimizeDeps: {
     include: ['hds-lib']

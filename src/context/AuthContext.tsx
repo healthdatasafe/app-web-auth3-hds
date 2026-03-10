@@ -69,8 +69,7 @@ export function useAuth (): AuthContextValue {
 }
 
 function defaultServiceInfoUrl (): string {
-  const domain = location.hostname.split('.').slice(1).join('.') || 'pryv.me'
-  return 'https://reg.' + domain + '/service/info'
+  return window.__HDS_SERVICE_INFO_URL__ || 'https://demo.datasafe.dev/reg/service/info'
 }
 
 export function AuthProvider ({ children }: { children: React.ReactNode }) {

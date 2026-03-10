@@ -32,7 +32,14 @@ if [ ! -d dist ]; then
   echo "
 Setting up 'dist' folder for publishing to GitHub pages...
 "
-  git clone git@github.com:healthdatasafe/app-web-auth3-hds.git dist && cd dist && git checkout gh-pages
+  git clone -b gh-pages git@github.com:healthdatasafe/app-web-auth3-hds.git dist
+fi
+
+if [ ! -d distprod ]; then
+  echo "
+Setting up 'distprod' folder for publishing to production...
+"
+  git clone git@github.com:healthdatasafe/app-web-auth3-hds-prod.git distprod
 fi
 
 echo "
