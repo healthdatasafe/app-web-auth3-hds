@@ -1,0 +1,17 @@
+{
+  "appId": "pryv-app-web-auth-3",
+  "type": "app",
+  "description": "HDS-themed Pryv auth page — handles permission grants and account creation",
+  "produces": {
+    "items": [],
+    "eventTypes": []
+  },
+  "consumes": {
+    "items": [],
+    "eventTypes": []
+  },
+  "streams": [],
+  "access": {
+    "note": "Auth intermediary — creates accesses on behalf of requesting apps, does not create its own streams"
+  }
+}
