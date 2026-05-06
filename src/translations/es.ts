@@ -45,6 +45,24 @@ const es: Translations = {
     required: 'La contraseña es obligatoria.',
     confirmationMismatch: 'La confirmación de la contraseña no coincide.'
   },
+  register: {
+    title: 'Crea tu cuenta',
+    intro: 'Únete a Health Data Safe para gestionar y compartir tus datos de salud con seguridad.',
+    usernameLabel: 'Nombre de usuario',
+    usernameHint: 'Letras, números y guiones. 5–60 caracteres.',
+    emailLabel: 'E-mail',
+    emailHint: 'Opcional, pero necesario para restablecer tu contraseña.',
+    hostingLabel: 'Región de alojamiento',
+    submit: 'Crear cuenta',
+    submitting: 'Creando…',
+    termsPrefix: 'Al crear una cuenta aceptas nuestras',
+    termsLink: 'condiciones de uso',
+    successTitle: 'Bienvenido a Health Data Safe',
+    successBody: 'Tu cuenta {{username}} ha sido creada.',
+    successContinueAuth: 'Continuar para iniciar sesión',
+    alreadyHaveAccount: '¿Ya tienes cuenta?',
+    signInLink: 'Iniciar sesión'
+  },
   signinhub: {
     title: 'Encontrar tu cuenta',
     intro: 'Introduce tu nombre de usuario o e-mail para acceder a tu página de Health Data Safe.',

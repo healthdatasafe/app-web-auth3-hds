@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useT } from '../i18n'
 import PasswordInput from '../components/PasswordInput'
 import Alert from '../components/Alert'
+import LanguageSelector from '../components/LanguageSelector'
 import type { HostingSelectionItem } from '../services/authService'
 
 export default function Register () {
   const { authService, user, setUser, isAccessRequest, language, appId, accessState, serviceInfo } = useAuth()
+  const t = useT()
 
   const [password, setPassword] = useState('')
   const [email, setEmail] = useState('')
@@ -14,16 +17,27 @@ export default function Register () {
   const [hostings, setHostings] = useState<HostingSelectionItem[]>([])
   const [newUser, setNewUser] = useState<any>(null)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     authService.getAvailableHostings()
       .then(items => {
+        if (cancelled) return
         setHostings(items)
         if (items.length > 0) setHosting(items[0].value)
       })
-      .catch(e => setError(parseError(e)))
+      .catch(e => { if (!cancelled) setError(parseError(e)) })
+    authService.assets()
+      .then((assets: any) => {
+        if (cancelled) return
+        assets.setAllDefaults()
+        const logo = assets._assets?.['app-web-auth3']?.logo?.url
+        if (logo) setLogoUrl(assets.relativeURL(logo))
+      })
+      .catch(() => { /* logo is optional */ })
+    return () => { cancelled = true }
   }, [authService])
 
   async function handleSubmit (e: React.FormEvent) {
@@ -31,15 +45,14 @@ export default function Register () {
     if (!user.username.trim() || !password || !hosting) return
     setError('')
     setSubmitting(true)
-
     try {
-      // Generate random email if not provided
+      // Generate a random email if the field is empty (kept for parity with
+      // the legacy app — Pryv requires an email server-side).
       let finalEmail = email
       if (!finalEmail || finalEmail.length === 0) {
         finalEmail = randomString(20) + '@pryv.io'
       }
 
-      // Find available core for selected hosting
       const selected = hostings.find(h => h.value === hosting)
       const availableCore = selected?.availableCore || ''
 
@@ -59,11 +72,10 @@ export default function Register () {
         undefined,
         referer
       )
-
       setNewUser(result)
-      setSuccess(`New user successfully created: ${result.username}.`)
 
       if (!isAccessRequest) {
+        // Standalone registration → redirect to user's apiEndpoint root.
         location.href = authService.apiEndpointFor(result.username)
       }
     } catch (err: any) {
@@ -74,98 +86,148 @@ export default function Register () {
   }
 
   return (
-    <div>
-      <h1 className='text-xl font-semibold mb-4'>Register a new user</h1>
+    <div className='font-body text-[var(--hds-foreground)]'>
+      <div className='relative mx-auto w-full max-w-md rounded-2xl border border-[var(--hds-border)] bg-[var(--hds-card)] p-6 text-left shadow-sm sm:p-7'>
+        <LanguageSelector className='absolute left-2 top-2' />
 
-      {!newUser && (
-        <form id='registerForm' onSubmit={handleSubmit} className='space-y-3'>
-          <div>
-            <label htmlFor='email' className='block text-sm font-medium text-neutral-700 mb-1'>
-              E-mail
-            </label>
-            <input
-              id='email'
-              type='email'
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder='Optional (required for password reset)'
-              className='w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none'
-            />
-          </div>
+        <header className='mb-4 text-center'>
+          {logoUrl && (
+            <img src={logoUrl} alt='Logo' className='mx-auto mb-3 h-10 sm:h-12' />
+          )}
+          <h1 className='font-sans text-xl font-semibold tracking-tight text-[var(--hds-foreground)]'>
+            {newUser ? t('register.successTitle') : t('register.title')}
+          </h1>
+          <p className='mt-1 text-sm text-[var(--hds-muted-foreground)]'>
+            {newUser
+              ? t('register.successBody', { username: newUser.username })
+              : t('register.intro')}
+          </p>
+        </header>
 
-          <div>
-            <label htmlFor='username' className='block text-sm font-medium text-neutral-700 mb-1'>
-              Username
-            </label>
-            <input
-              id='username'
-              type='text'
-              value={user.username}
-              onChange={e => setUser({ ...user, username: e.target.value })}
-              required
-              className='w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none'
-            />
-          </div>
+        {!newUser && (
+          <form onSubmit={handleSubmit} className='space-y-3'>
+            <div>
+              <label
+                htmlFor='username'
+                className='mb-1 block text-sm font-medium text-[var(--hds-foreground)]'
+              >
+                {t('register.usernameLabel')}
+              </label>
+              <input
+                id='username'
+                type='text'
+                value={user.username}
+                onChange={e => setUser({ ...user, username: e.target.value })}
+                autoComplete='username'
+                autoCapitalize='off'
+                autoCorrect='off'
+                spellCheck={false}
+                required
+                className='w-full rounded-lg border border-[var(--hds-input)] bg-[var(--hds-background)] px-3 py-2.5 text-base outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30'
+              />
+              <p className='mt-1 text-xs text-[var(--hds-muted-foreground)]'>
+                {t('register.usernameHint')}
+              </p>
+            </div>
 
-          <PasswordInput value={password} onChange={setPassword} confirmation />
+            <div>
+              <label
+                htmlFor='email'
+                className='mb-1 block text-sm font-medium text-[var(--hds-foreground)]'
+              >
+                {t('register.emailLabel')}
+              </label>
+              <input
+                id='email'
+                type='email'
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                autoComplete='email'
+                className='w-full rounded-lg border border-[var(--hds-input)] bg-[var(--hds-background)] px-3 py-2.5 text-base outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30'
+              />
+              <p className='mt-1 text-xs text-[var(--hds-muted-foreground)]'>
+                {t('register.emailHint')}
+              </p>
+            </div>
 
-          <div>
-            <label htmlFor='hosting' className='block text-sm font-medium text-neutral-700 mb-1'>
-              Hosting
-            </label>
-            <select
-              id='hosting'
-              value={hosting}
-              onChange={e => setHosting(e.target.value)}
-              required
-              className='w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none'
-            >
-              {hostings.map(h => (
-                <option key={h.value} value={h.value}>{h.text}</option>
-              ))}
-            </select>
-          </div>
+            <PasswordInput value={password} onChange={setPassword} confirmation />
 
-          <div className='flex gap-3 pt-1'>
+            {/* Hosting select — only render when there's a real choice. Demo
+                + prod each have a single hosting today, so the dropdown is
+                pure noise; the value is still set internally from the first
+                returned entry. */}
+            {hostings.length > 1 && (
+              <div>
+                <label
+                  htmlFor='hosting'
+                  className='mb-1 block text-sm font-medium text-[var(--hds-foreground)]'
+                >
+                  {t('register.hostingLabel')}
+                </label>
+                <select
+                  id='hosting'
+                  value={hosting}
+                  onChange={e => setHosting(e.target.value)}
+                  required
+                  className='w-full rounded-lg border border-[var(--hds-input)] bg-[var(--hds-background)] px-3 py-2.5 text-base outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30'
+                >
+                  {hostings.map(h => (
+                    <option key={h.value} value={h.value}>{h.text}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {error && <Alert error={error} />}
+
             <button
               id='submitButton'
               type='submit'
               disabled={!user.username.trim() || !password || !hosting || submitting}
-              className='px-4 py-2 text-sm rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed'
+              className='inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-base font-semibold text-white transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:cursor-not-allowed disabled:opacity-50'
             >
-              Create
+              {submitting ? t('register.submitting') : t('register.submit')}
             </button>
-            <button
-              id='clearButton'
-              type='reset'
-              onClick={() => { setEmail(''); setPassword(''); setHosting(hostings[0]?.value || ''); setUser({ ...user, username: '' }) }}
-              className='px-4 py-2 text-sm rounded-lg border border-neutral-300 hover:bg-neutral-50'
-            >
-              Clear
-            </button>
-          </div>
 
-          {serviceInfo?.terms && (
-            <p className='text-sm text-neutral-500'>
-              By registering you agree with our{' '}
-              <a href={serviceInfo.terms} target='_blank' rel='noreferrer' className='text-primary-600 underline'>
-                terms and conditions
-              </a>.
-            </p>
-          )}
-        </form>
-      )}
+            {serviceInfo?.terms && (
+              <p className='text-center text-xs text-[var(--hds-muted-foreground)]'>
+                {t('register.termsPrefix')}{' '}
+                <a
+                  href={serviceInfo.terms}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='font-medium text-primary-600 underline-offset-2 hover:underline'
+                >
+                  {t('register.termsLink')}
+                </a>
+                .
+              </p>
+            )}
+          </form>
+        )}
 
-      {isAccessRequest && (
-        <>
-          <hr className='my-4 border-neutral-200' />
-          <Link to='/access/auth' className='text-primary-600 hover:underline font-medium'>
-            Go to Sign in
+        {/* Success state — when in an auth-flow context, show a continue
+            button back to /access/auth so the user can sign in with the
+            new credentials. (Standalone register hard-redirects above.) */}
+        {newUser && isAccessRequest && (
+          <Link
+            to='/access/auth'
+            className='inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-base font-semibold text-white transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/40'
+          >
+            {t('register.successContinueAuth')}
           </Link>
-        </>
-      )}
+        )}
 
-      <Alert error={error} success={success} />
+        <div className='mt-4 border-t border-[var(--hds-border)] pt-3 text-center text-xs text-[var(--hds-muted-foreground)]'>
+          {t('register.alreadyHaveAccount')}{' '}
+          <Link
+            to={isAccessRequest ? '/access/auth' : '/access/signin'}
+            className='font-medium underline-offset-2 hover:text-primary-600 hover:underline'
+          >
+            {t('register.signInLink')}
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }

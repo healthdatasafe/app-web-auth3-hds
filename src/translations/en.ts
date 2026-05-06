@@ -44,6 +44,24 @@ const en = {
     required: 'Password is required.',
     confirmationMismatch: 'Password confirmation does not match.'
   },
+  register: {
+    title: 'Create your account',
+    intro: 'Join Health Data Safe to securely manage and share your health data.',
+    usernameLabel: 'Username',
+    usernameHint: 'Letters, numbers and dashes. 5–60 characters.',
+    emailLabel: 'E-mail',
+    emailHint: 'Optional, but required to recover your password later.',
+    hostingLabel: 'Hosting region',
+    submit: 'Create account',
+    submitting: 'Creating…',
+    termsPrefix: 'By creating an account you agree to our',
+    termsLink: 'terms and conditions',
+    successTitle: 'Welcome to Health Data Safe',
+    successBody: 'Your account {{username}} has been created.',
+    successContinueAuth: 'Continue to sign in',
+    alreadyHaveAccount: 'Already have an account?',
+    signInLink: 'Sign in'
+  },
   signinhub: {
     title: 'Find your account',
     intro: 'Enter your username or email to continue to your Health Data Safe homepage.',

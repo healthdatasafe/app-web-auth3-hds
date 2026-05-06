@@ -45,6 +45,24 @@ const fr: Translations = {
     required: 'Le mot de passe est obligatoire.',
     confirmationMismatch: 'La confirmation du mot de passe ne correspond pas.'
   },
+  register: {
+    title: 'Créer votre compte',
+    intro: 'Rejoignez Health Data Safe pour gérer et partager vos données de santé en toute sécurité.',
+    usernameLabel: 'Nom d’utilisateur',
+    usernameHint: 'Lettres, chiffres et tirets. 5–60 caractères.',
+    emailLabel: 'E-mail',
+    emailHint: 'Facultatif, mais nécessaire pour réinitialiser votre mot de passe.',
+    hostingLabel: 'Région d’hébergement',
+    submit: 'Créer le compte',
+    submitting: 'Création…',
+    termsPrefix: 'En créant un compte, vous acceptez nos',
+    termsLink: 'conditions d’utilisation',
+    successTitle: 'Bienvenue sur Health Data Safe',
+    successBody: 'Votre compte {{username}} a été créé.',
+    successContinueAuth: 'Continuer vers la connexion',
+    alreadyHaveAccount: 'Vous avez déjà un compte ?',
+    signInLink: 'Se connecter'
+  },
   signinhub: {
     title: 'Trouver votre compte',
     intro: 'Saisissez votre nom d’utilisateur ou e-mail pour accéder à votre page Health Data Safe.',
