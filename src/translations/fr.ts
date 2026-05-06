@@ -45,6 +45,26 @@ const fr: Translations = {
     required: 'Le mot de passe est obligatoire.',
     confirmationMismatch: 'La confirmation du mot de passe ne correspond pas.'
   },
+  reset: {
+    request: {
+      title: 'Réinitialiser le mot de passe',
+      intro: 'Saisissez votre nom d’utilisateur ou e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.',
+      submit: 'Envoyer l’e-mail',
+      submitting: 'Envoi…',
+      successTitle: 'Vérifiez votre boîte mail',
+      successBody: 'Si un compte correspond, des instructions de réinitialisation ont été envoyées. Le lien expire dans une heure.'
+    },
+    set: {
+      title: 'Définir un nouveau mot de passe',
+      intro: 'Choisissez un nouveau mot de passe pour votre compte Health Data Safe.',
+      submit: 'Changer le mot de passe',
+      submitting: 'Modification…',
+      successTitle: 'Mot de passe modifié',
+      successBody: 'Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.'
+    },
+    backToSignIn: 'Retour à la connexion',
+    backToReset: 'Retour'
+  },
   consent: {
     title: 'Autoriser {{appId}}',
     intro: 'Cette application demande l’accès à votre compte Health Data Safe.',

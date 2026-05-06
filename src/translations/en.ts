@@ -44,6 +44,26 @@ const en = {
     required: 'Password is required.',
     confirmationMismatch: 'Password confirmation does not match.'
   },
+  reset: {
+    request: {
+      title: 'Reset password',
+      intro: 'Enter your username or email and we’ll send you a link to reset your password.',
+      submit: 'Send reset email',
+      submitting: 'Sending…',
+      successTitle: 'Check your inbox',
+      successBody: 'If an account matches, password reset instructions have been sent. The link expires within one hour.'
+    },
+    set: {
+      title: 'Set a new password',
+      intro: 'Choose a new password for your Health Data Safe account.',
+      submit: 'Change password',
+      submitting: 'Changing…',
+      successTitle: 'Password changed',
+      successBody: 'Your password has been changed. You can now sign in with your new password.'
+    },
+    backToSignIn: 'Back to sign in',
+    backToReset: 'Back'
+  },
   consent: {
     title: 'Authorise {{appId}}',
     intro: 'This app is requesting access to your Health Data Safe account.',

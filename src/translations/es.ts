@@ -45,6 +45,26 @@ const es: Translations = {
     required: 'La contraseña es obligatoria.',
     confirmationMismatch: 'La confirmación de la contraseña no coincide.'
   },
+  reset: {
+    request: {
+      title: 'Restablecer contraseña',
+      intro: 'Introduce tu nombre de usuario o e-mail y te enviaremos un enlace para restablecer tu contraseña.',
+      submit: 'Enviar e-mail',
+      submitting: 'Enviando…',
+      successTitle: 'Revisa tu correo',
+      successBody: 'Si una cuenta coincide, se han enviado instrucciones para restablecer la contraseña. El enlace caduca en una hora.'
+    },
+    set: {
+      title: 'Establecer una nueva contraseña',
+      intro: 'Elige una nueva contraseña para tu cuenta de Health Data Safe.',
+      submit: 'Cambiar contraseña',
+      submitting: 'Cambiando…',
+      successTitle: 'Contraseña cambiada',
+      successBody: 'Tu contraseña ha sido cambiada. Ya puedes iniciar sesión con tu nueva contraseña.'
+    },
+    backToSignIn: 'Volver al inicio de sesión',
+    backToReset: 'Volver'
+  },
   consent: {
     title: 'Autorizar a {{appId}}',
     intro: 'Esta aplicación solicita acceso a tu cuenta de Health Data Safe.',
