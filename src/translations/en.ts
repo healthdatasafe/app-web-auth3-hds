@@ -113,7 +113,10 @@ const en = {
     reject: 'Reject',
     revokeNote: 'You can revoke this access at any time from your account.'
   }
-} as const
+}
 
 export default en
+// Translations is the structural shape — fr/es are checked against this
+// for *which keys* must be present, but values can be any string. (Don't
+// `as const` the bag, or fr/es can't supply different strings.)
 export type Translations = typeof en
