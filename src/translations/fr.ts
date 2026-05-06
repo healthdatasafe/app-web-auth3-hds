@@ -45,6 +45,12 @@ const fr: Translations = {
     required: 'Le mot de passe est obligatoire.',
     confirmationMismatch: 'La confirmation du mot de passe ne correspond pas.'
   },
+  signinhub: {
+    title: 'Trouver votre compte',
+    intro: 'Saisissez votre nom d’utilisateur ou e-mail pour accéder à votre page Health Data Safe.',
+    submit: 'Continuer',
+    submitting: 'Chargement…'
+  },
   changepassword: {
     title: 'Changer le mot de passe',
     intro: 'Mettez à jour votre mot de passe. Nous nous connecterons avec l’actuel pour confirmer votre identité.',

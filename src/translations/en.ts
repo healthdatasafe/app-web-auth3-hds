@@ -44,6 +44,12 @@ const en = {
     required: 'Password is required.',
     confirmationMismatch: 'Password confirmation does not match.'
   },
+  signinhub: {
+    title: 'Find your account',
+    intro: 'Enter your username or email to continue to your Health Data Safe homepage.',
+    submit: 'Continue',
+    submitting: 'Loading…'
+  },
   changepassword: {
     title: 'Change password',
     intro: 'Update your password. We’ll sign you in with the current one to verify it’s you.',

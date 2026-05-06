@@ -45,6 +45,12 @@ const es: Translations = {
     required: 'La contraseña es obligatoria.',
     confirmationMismatch: 'La confirmación de la contraseña no coincide.'
   },
+  signinhub: {
+    title: 'Encontrar tu cuenta',
+    intro: 'Introduce tu nombre de usuario o e-mail para acceder a tu página de Health Data Safe.',
+    submit: 'Continuar',
+    submitting: 'Cargando…'
+  },
   changepassword: {
     title: 'Cambiar contraseña',
     intro: 'Actualiza tu contraseña. Iniciaremos sesión con la actual para verificar que eres tú.',
