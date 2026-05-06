@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+- **2026-05-06** — Hostnames flipped to `demo-account.datasafe.dev` (demo) and `account.datasafe.dev` (prod), replacing `demo-auth.datasafe.dev` / `auth.datasafe.dev`. Source-of-truth tracked in `dev-deploy/config/apps.yml § app-web-auth3-hds` and `pryv.open-pryv-io.auth-urls`. Plan: `_plans/55-app-web-auth3-rewrite-and-pwd-reset-atwork/`.
+- **2026-05-06** — Hardened `scripts/deploy.sh` and `scripts/deploy-prod.sh`: reset to `origin/gh-pages` (resp. `origin/main`) before build, `.nojekyll` touch, post-build sanity check (assert `index.html`, `404.html`, `CNAME`, `assets/index-*.js`, expected CNAME content).
+
+### Fixed
+- **2026-05-06** — React rewrite (`feat/react-rewrite`) was runtime-broken end-to-end against `pryv-lib@3.0.3` because `pryv.utils.superagent` was dropped in v3. Migrated 16 HTTP call sites in `src/services/authService.ts` from superagent's chained API to `pryv.utils.fetchPost` / `fetchGet` (raw `fetch` for `DELETE`). Also `src/context/AuthContext.tsx` (poll-URL GET in `init()` + POST in `updateAccessState()`). Plus a null-guard in `src/pages/Authorization.tsx:82-87` so `clientData: null` from the auth-request payload isn't forwarded to `/accesses/check-app` (the Pryv API rejects null with `400 invalid-parameters-format`).
+
 ## [1.1.0] - 2025-05-13
 
 ### Fixed
