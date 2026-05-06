@@ -44,6 +44,17 @@ const en = {
     required: 'Password is required.',
     confirmationMismatch: 'Password confirmation does not match.'
   },
+  changepassword: {
+    title: 'Change password',
+    intro: 'Update your password. We’ll sign you in with the current one to verify it’s you.',
+    currentPasswordLabel: 'Current password',
+    newPasswordLabel: 'New password',
+    newPasswordConfirmationLabel: 'Confirm new password',
+    submit: 'Change password',
+    submitting: 'Changing…',
+    successTitle: 'Password changed',
+    successBody: 'Your password has been changed. You can now sign in with your new password.'
+  },
   reset: {
     request: {
       title: 'Reset password',

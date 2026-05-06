@@ -45,6 +45,17 @@ const fr: Translations = {
     required: 'Le mot de passe est obligatoire.',
     confirmationMismatch: 'La confirmation du mot de passe ne correspond pas.'
   },
+  changepassword: {
+    title: 'Changer le mot de passe',
+    intro: 'Mettez à jour votre mot de passe. Nous nous connecterons avec l’actuel pour confirmer votre identité.',
+    currentPasswordLabel: 'Mot de passe actuel',
+    newPasswordLabel: 'Nouveau mot de passe',
+    newPasswordConfirmationLabel: 'Confirmez le nouveau mot de passe',
+    submit: 'Changer le mot de passe',
+    submitting: 'Modification…',
+    successTitle: 'Mot de passe modifié',
+    successBody: 'Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter avec le nouveau mot de passe.'
+  },
   reset: {
     request: {
       title: 'Réinitialiser le mot de passe',

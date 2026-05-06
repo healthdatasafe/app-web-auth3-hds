@@ -5,6 +5,8 @@ interface PasswordInputProps {
   value: string
   onChange: (value: string) => void
   label?: string
+  /** Label for the confirmation input. Falls back to `t('password.confirmationLabel')`. */
+  confirmationLabel?: string
   id?: string
   confirmation?: boolean
   autoComplete?: string
@@ -14,6 +16,7 @@ export default function PasswordInput ({
   value,
   onChange,
   label,
+  confirmationLabel,
   id = 'password',
   confirmation = false,
   autoComplete
@@ -71,7 +74,7 @@ export default function PasswordInput ({
             htmlFor={`${id}Confirmation`}
             className='mb-1.5 block text-sm font-medium text-[var(--hds-foreground)]'
           >
-            {label != null ? `${label} ${t('password.confirmationLabel').toLowerCase()}` : t('password.confirmationLabel')}
+            {confirmationLabel ?? t('password.confirmationLabel')}
           </label>
           <input
             id={`${id}Confirmation`}

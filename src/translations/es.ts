@@ -45,6 +45,17 @@ const es: Translations = {
     required: 'La contraseña es obligatoria.',
     confirmationMismatch: 'La confirmación de la contraseña no coincide.'
   },
+  changepassword: {
+    title: 'Cambiar contraseña',
+    intro: 'Actualiza tu contraseña. Iniciaremos sesión con la actual para verificar que eres tú.',
+    currentPasswordLabel: 'Contraseña actual',
+    newPasswordLabel: 'Nueva contraseña',
+    newPasswordConfirmationLabel: 'Confirmar nueva contraseña',
+    submit: 'Cambiar contraseña',
+    submitting: 'Cambiando…',
+    successTitle: 'Contraseña cambiada',
+    successBody: 'Tu contraseña ha sido cambiada. Ya puedes iniciar sesión con tu nueva contraseña.'
+  },
   reset: {
     request: {
       title: 'Restablecer contraseña',
