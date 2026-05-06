@@ -81,8 +81,9 @@ export default function Authorization () {
     if (!accessState) return
     const checkData: any = {}
     for (const key of ['requestingAppId', 'requestedPermissions', 'deviceName', 'token', 'expireAfter', 'clientData']) {
-      if ((accessState as any)[key] !== undefined) {
-        checkData[key] = (accessState as any)[key]
+      const v = (accessState as any)[key]
+      if (v != null) {
+        checkData[key] = v
       }
     }
 

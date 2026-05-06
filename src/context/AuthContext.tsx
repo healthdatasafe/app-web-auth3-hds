@@ -5,7 +5,7 @@ import type { ServiceInfo, AppCheck } from '../services/authService'
 
 import HDSLib from 'hds-lib'
 const { pryv } = HDSLib
-const http: any = (pryv.utils as any).superagent
+const { fetchPost, fetchGet } = pryv.utils as any
 
 const APP_ID = 'pryv-app-web-auth-3'
 
@@ -109,10 +109,10 @@ export function AuthProvider ({ children }: { children: React.ReactNode }) {
     if (accessState?.returnURL) {
       newState.returnURL = accessState.returnURL
     }
-    const res = await http.post(pollUrl).send(newState)
+    const { response } = await fetchPost(pollUrl, newState)
     setAccessState(prev => ({ ...prev, ...newState }))
     if (newState.lang) setLanguage(newState.lang)
-    return res.status
+    return response.status
   }, [pollUrl, accessState?.returnURL])
 
   const init = useCallback(async () => {
@@ -120,8 +120,7 @@ export function AuthProvider ({ children }: { children: React.ReactNode }) {
     try {
       if (isAccessRequest) {
         // Load access state from poll URL
-        const res = await http.get(pollUrl).set('accept', 'json')
-        const pollData = res.body
+        const { body: pollData } = await fetchGet(pollUrl)
         const merged = oauthState ? { ...pollData, oaccessState: oauthState } : pollData
         setAccessState(merged)
         if (merged.lang) setLanguage(merged.lang)

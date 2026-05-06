@@ -6,8 +6,7 @@
  */
 import HDSLib from 'hds-lib'
 const { pryv, HDSService } = HDSLib
-// superagent is available at runtime but not in pryv's type declarations
-const http: any = (pryv.utils as any).superagent
+const { fetchPost, fetchGet } = pryv.utils as any
 
 export interface Permission {
   streamId: string
@@ -100,110 +99,110 @@ export class AuthService {
   // ---- Auth / Login ----
 
   /**
-   * Login using pryv 3 native service.login()
-   * Returns the connection, or throws with mfaToken if MFA required.
+   * Login using pryv 3 native fetch. Returns a Connection on success, throws
+   * with `mfaToken` attached when MFA is required.
    */
   async login (username: string, password: string, appId: string): Promise<any> {
     const apiEndpoint = await this.service.apiEndpointFor(username)
-    try {
-      const headers: any = { accept: 'json' }
-      const originHeader = (await this.info()).register
-      if (!pryv.utils.isBrowser()) {
-        headers.Origin = originHeader
-      }
-      const res = await http
-        .post(apiEndpoint + 'auth/login')
-        .set(headers)
-        .send({ username, password, appId })
+    const headers: Record<string, string> = {}
+    if (!pryv.utils.isBrowser()) {
+      headers.Origin = (await this.info()).register
+    }
+    const { response, body } = await fetchPost(
+      apiEndpoint + 'auth/login',
+      { username, password, appId },
+      headers
+    )
 
-      if (!res.body.token) {
-        throw new Error('Invalid login response')
-      }
+    if (response.ok && body?.token) {
       return new pryv.Connection(
-        pryv.Service.buildAPIEndpoint(await this.info() as any, username, res.body.token),
+        pryv.Service.buildAPIEndpoint(await this.info() as any, username, body.token),
         this.service
       )
-    } catch (e: any) {
-      if (e.response?.body) {
-        const body = e.response.body
-        if (body.error?.message) {
-          throw new Error(body.error.message)
-        }
-        if (body.mfaToken) {
-          const mfaError: any = new Error('MFA required')
-          mfaError.mfaToken = body.mfaToken
-          throw mfaError
-        }
-      }
-      throw e
     }
+
+    if (body?.mfaToken) {
+      const mfaError: any = new Error('MFA required')
+      mfaError.mfaToken = body.mfaToken
+      throw mfaError
+    }
+    if (body?.error?.message) {
+      throw new Error(body.error.message)
+    }
+    throw new Error('Invalid login response')
   }
 
   // ---- MFA ----
 
   async mfaChallenge (username: string, mfaToken: string): Promise<void> {
-    await http
-      .post(this.apiEndpointFor(username) + 'mfa/challenge')
-      .set('accept', 'json')
-      .set('Authorization', mfaToken)
-      .send({})
+    await fetchPost(
+      this.apiEndpointFor(username) + 'mfa/challenge',
+      {},
+      { Authorization: mfaToken }
+    )
   }
 
   async mfaVerify (username: string, mfaToken: string, code: string): Promise<string> {
-    const res = await http
-      .post(this.apiEndpointFor(username) + 'mfa/verify')
-      .set('accept', 'json')
-      .set('Authorization', mfaToken)
-      .send({ code })
-    return res.body.token
+    const { body } = await fetchPost(
+      this.apiEndpointFor(username) + 'mfa/verify',
+      { code },
+      { Authorization: mfaToken }
+    )
+    return body.token
   }
 
   // ---- Access management ----
 
   async checkAppAccess (username: string, personalToken: string, checkData: any): Promise<AppCheck> {
-    const res = await http
-      .post(this.apiEndpointFor(username) + 'accesses/check-app')
-      .set('accept', 'json')
-      .set('Authorization', personalToken)
-      .send(checkData)
-    return res.body
+    const { body } = await fetchPost(
+      this.apiEndpointFor(username) + 'accesses/check-app',
+      checkData,
+      { Authorization: personalToken }
+    )
+    return body
   }
 
   async createAppAccess (username: string, personalToken: string, requestData: any): Promise<AppAccess> {
-    const res = await http
-      .post(this.apiEndpointFor(username) + 'accesses')
-      .set('accept', 'json')
-      .set('Authorization', personalToken)
-      .send(requestData)
-    return res.body.access
+    const { body } = await fetchPost(
+      this.apiEndpointFor(username) + 'accesses',
+      requestData,
+      { Authorization: personalToken }
+    )
+    return body.access
   }
 
   async deleteAppAccess (username: string, personalToken: string, accessId: string): Promise<any> {
-    const res = await http
-      .delete(this.apiEndpointFor(username) + 'accesses/' + accessId)
-      .set('accept', 'json')
-      .set('Authorization', personalToken)
-      .send({ id: accessId })
-    return res.body.accessDeletion
+    const response = await fetch(
+      this.apiEndpointFor(username) + 'accesses/' + accessId,
+      {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: personalToken
+        },
+        body: JSON.stringify({ id: accessId })
+      }
+    )
+    const body = await response.json()
+    return body.accessDeletion
   }
 
   /** Batch API call (replaces userApiBatchCall) */
   async apiBatchCall (username: string, personalToken: string, calls: any[]): Promise<any> {
-    const res = await http
-      .post(this.apiEndpointFor(username))
-      .set('accept', 'json')
-      .set('Authorization', personalToken)
-      .send(calls)
-    return res.body
+    const { body } = await fetchPost(
+      this.apiEndpointFor(username),
+      calls,
+      { Authorization: personalToken }
+    )
+    return body
   }
 
   // ---- Registration ----
 
   async getAvailableHostings (): Promise<HostingSelectionItem[]> {
-    const res = await http
-      .get(this.infoSync().register + 'hostings')
-      .set('accept', 'json')
-    return parseHostings(res.body)
+    const { body } = await fetchGet(this.infoSync().register + 'hostings')
+    return parseHostings(body)
   }
 
   async createUser (
@@ -220,10 +219,9 @@ export class AuthService {
     const version = this.infoSync().version
     let res
     if (version && isVersionGte(version, '1.6.0')) {
-      res = await http
-        .post(new URL('users', availableCore).href)
-        .set('accept', 'json')
-        .send({
+      res = await fetchPost(
+        new URL('users', availableCore).href,
+        {
           appId,
           username,
           password,
@@ -232,12 +230,12 @@ export class AuthService {
           language: lang || 'en',
           invitationToken: invitation || 'enjoy',
           referer
-        })
+        }
+      )
     } else {
-      res = await http
-        .post(this.infoSync().register + 'user')
-        .set('accept', 'json')
-        .send({
+      res = await fetchPost(
+        this.infoSync().register + 'user',
+        {
           appid: appId,
           username,
           password,
@@ -246,52 +244,51 @@ export class AuthService {
           languageCode: lang || 'en',
           invitationtoken: invitation || 'enjoy',
           referer
-        })
+        }
+      )
     }
     return res.body
   }
 
   async checkUsernameExistence (username: string): Promise<string> {
-    const res = await http
-      .post(this.infoSync().register + username + '/server')
-      .set('accept', 'json')
-      .send({})
-    return res.body.server
+    const { body } = await fetchPost(
+      this.infoSync().register + username + '/server',
+      {}
+    )
+    return body.server
   }
 
   async getUsernameForEmail (usernameOrEmail: string): Promise<string> {
     if (!usernameOrEmail.includes('@')) return usernameOrEmail
-    const res = await http
-      .get(this.infoSync().register + usernameOrEmail + '/uid')
-      .set('accept', 'json')
-    return res.body.uid
+    const { body } = await fetchGet(this.infoSync().register + usernameOrEmail + '/uid')
+    return body.uid
   }
 
   // ---- Password management ----
 
   async requestPasswordReset (username: string, appId: string): Promise<number> {
-    const res = await http
-      .post(this.apiEndpointFor(username) + 'account/request-password-reset')
-      .set('accept', 'json')
-      .send({ appId, username })
-    return res.status
+    const { response } = await fetchPost(
+      this.apiEndpointFor(username) + 'account/request-password-reset',
+      { appId, username }
+    )
+    return response.status
   }
 
   async resetPassword (username: string, newPassword: string, resetToken: string, appId: string): Promise<number> {
-    const res = await http
-      .post(this.apiEndpointFor(username) + 'account/reset-password')
-      .set('accept', 'json')
-      .send({ username, newPassword, appId, resetToken })
-    return res.status
+    const { response } = await fetchPost(
+      this.apiEndpointFor(username) + 'account/reset-password',
+      { username, newPassword, appId, resetToken }
+    )
+    return response.status
   }
 
   async changePassword (username: string, oldPassword: string, newPassword: string, personalToken: string): Promise<number> {
-    const res = await http
-      .post(this.apiEndpointFor(username) + 'account/change-password')
-      .set('accept', 'json')
-      .set('Authorization', personalToken)
-      .send({ oldPassword, newPassword })
-    return res.status
+    const { response } = await fetchPost(
+      this.apiEndpointFor(username) + 'account/change-password',
+      { oldPassword, newPassword },
+      { Authorization: personalToken }
+    )
+    return response.status
   }
 }
 
