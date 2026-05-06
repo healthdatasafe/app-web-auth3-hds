@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useT } from '../i18n'
 import PasswordInput from '../components/PasswordInput'
 import PermissionsDialog from '../components/PermissionsDialog'
 import Alert from '../components/Alert'
+import LanguageSelector from '../components/LanguageSelector'
 import { closeOrRedirect } from '../utils'
 
 const ACCEPTED_STATUS = 'ACCEPTED'
@@ -13,13 +15,29 @@ const NEED_SIGNIN_STATUS = 'NEED_SIGNIN'
 export default function Authorization () {
   const ctx = useAuth()
   const { authService, accessState, user, setUser, pollUrl, appId, updateAccessState, setCheckAppResult } = ctx
+  const t = useT()
 
   const [password, setPassword] = useState('')
   const [mfaCode, setMfaCode] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showPermissions, setShowPermissions] = useState(false)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const mfaActivated = !!user.mfaToken
+
+  // Service assets carry the logo URL via service-info; fetch once after mount.
+  useEffect(() => {
+    let cancelled = false
+    authService.assets()
+      .then((assets: any) => {
+        if (cancelled) return
+        assets.setAllDefaults()
+        const logo = assets._assets?.['app-web-auth3']?.logo?.url
+        if (logo) setLogoUrl(assets.relativeURL(logo))
+      })
+      .catch(() => { /* logo is optional */ })
+    return () => { cancelled = true }
+  }, [authService])
 
   async function handleLogin () {
     if (!user.username.trim() || !password) return
@@ -54,7 +72,7 @@ export default function Authorization () {
           await authService.mfaChallenge(resolved, err.mfaToken)
           setUser(prev => ({ ...prev, mfaToken: err.mfaToken }))
         } catch {
-          setError('Failed to perform MFA challenge.')
+          setError(t('mfa.challengeError'))
         }
       } else {
         setError(parseError(err))
@@ -72,7 +90,7 @@ export default function Authorization () {
       setMfaCode('')
       await doCheckAccess(user.username, token)
     } catch {
-      setError('MFA verification failed.')
+      setError(t('mfa.error'))
       setUser(prev => ({ ...prev, mfaToken: '' }))
     }
   }
@@ -173,10 +191,15 @@ export default function Authorization () {
     }
   }
 
-  return (
-    <div>
-      <h1 className='text-xl font-semibold mb-4'>Sign in</h1>
+  // The sign-in form is suppressed once we've moved into the consent step
+  // (PermissionsDialog) — keeps the visual hierarchy clean instead of
+  // showing a logged-in form behind the modal.
+  const showSignInForm = !showPermissions
+  const requestingAppId = accessState?.requestingAppId
 
+  return (
+    <div className='font-body text-[var(--hds-foreground)]'>
+      {/* Permissions consent (separate component, modal). */}
       {showPermissions && accessState && (
         <PermissionsDialog
           accessState={accessState}
@@ -186,99 +209,181 @@ export default function Authorization () {
         />
       )}
 
-      {/* MFA Dialog */}
+      {/* MFA challenge (modal). */}
       {mfaActivated && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
-          <div className='bg-white rounded-xl shadow-lg w-full max-w-sm mx-4 p-5'>
-            <h2 className='text-lg font-semibold mb-4'>MFA verification</h2>
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4'>
+          <div className='w-full max-w-sm rounded-2xl bg-[var(--hds-card)] p-6 shadow-xl'>
+            <h2 className='font-sans text-lg font-semibold text-[var(--hds-card-foreground)]'>
+              {t('mfa.title')}
+            </h2>
+            <p className='mt-1 text-sm text-[var(--hds-muted-foreground)]'>{t('mfa.prompt')}</p>
             <input
               id='mfaCode'
               type='text'
+              inputMode='numeric'
+              autoComplete='one-time-code'
               value={mfaCode}
               onChange={e => setMfaCode(e.target.value)}
-              placeholder='MFA code'
-              className='w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm mb-4 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none'
+              placeholder={t('mfa.placeholder')}
+              className='mt-4 w-full rounded-lg border border-[var(--hds-input)] bg-[var(--hds-background)] px-3 py-3 text-base tracking-widest tabular-nums outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30'
             />
-            <div className='flex justify-end gap-3'>
+            <div className='mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3'>
               <button
+                type='button'
                 onClick={() => { setUser({ ...user, mfaToken: '' }); setMfaCode('') }}
-                className='px-4 py-2 text-sm rounded-lg border border-neutral-300 hover:bg-neutral-50'
+                className='min-h-11 rounded-lg border border-[var(--hds-border)] px-4 py-2 text-sm font-medium text-[var(--hds-foreground)] hover:bg-[var(--hds-muted)]'
               >
-                Cancel
+                {t('mfa.cancel')}
               </button>
               <button
+                type='button'
                 onClick={handleMFA}
-                className='px-4 py-2 text-sm rounded-lg bg-primary-600 text-white hover:bg-primary-700'
+                className='min-h-11 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700'
               >
-                Ok
+                {t('mfa.submit')}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <form onSubmit={e => { e.preventDefault(); handleLogin() }} className='space-y-3'>
-        <div>
-          <label htmlFor='usernameOrEmail' className='block text-sm font-medium text-neutral-700 mb-1'>
-            Username or email
-          </label>
-          <input
-            id='usernameOrEmail'
-            type='text'
-            value={user.username}
-            onChange={e => setUser({ ...user, username: e.target.value })}
-            required
-            className='w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none'
-          />
+      {showSignInForm && (
+        <div className='relative mx-auto w-full max-w-md rounded-2xl border border-[var(--hds-border)] bg-[var(--hds-card)] p-6 text-left shadow-sm sm:p-7'>
+          {/* Language picker — top-left of the card, mirror of X close. */}
+          <LanguageSelector className='absolute left-2 top-2' />
+
+          {/* X close — only renders when there's an auth-request to refuse. */}
+          {accessState && (
+            <button
+              type='button'
+              onClick={handleRefuse}
+              aria-label={requestingAppId ? t('signin.cancelLinkWith', { appId: requestingAppId }) : t('signin.cancelLink')}
+              title={requestingAppId ? t('signin.cancelLinkWith', { appId: requestingAppId }) : t('signin.cancelLink')}
+              className='absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--hds-muted-foreground)] transition hover:bg-[var(--hds-muted)] hover:text-[var(--hds-foreground)] focus:outline-none focus:ring-2 focus:ring-primary-500/40'
+            >
+              <CloseIcon />
+            </button>
+          )}
+
+          {/* Heading — tight, compact. Logo lives at the top of the card. */}
+          <header className='mb-4 text-center'>
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt='Logo'
+                className='mx-auto mb-3 h-10 sm:h-12'
+              />
+            )}
+            <h1 className='font-sans text-xl font-semibold tracking-tight text-[var(--hds-foreground)]'>
+              {t('signin.title')}
+            </h1>
+            <p className='mt-1 text-sm text-[var(--hds-muted-foreground)]'>
+              {requestingAppId
+                ? t('signin.appContextWith', { appId: requestingAppId })
+                : t('signin.appContextWithout')}
+            </p>
+          </header>
+
+          {/* Form */}
+          <form onSubmit={e => { e.preventDefault(); handleLogin() }} className='space-y-3'>
+            <div>
+              <label
+                htmlFor='usernameOrEmail'
+                className='mb-1 block text-sm font-medium text-[var(--hds-foreground)]'
+              >
+                {t('signin.usernameLabel')}
+              </label>
+              <input
+                id='usernameOrEmail'
+                type='text'
+                value={user.username}
+                onChange={e => setUser({ ...user, username: e.target.value })}
+                autoComplete='username'
+                autoCapitalize='off'
+                autoCorrect='off'
+                spellCheck={false}
+                required
+                className='w-full rounded-lg border border-[var(--hds-input)] bg-[var(--hds-background)] px-3 py-2.5 text-base outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30'
+              />
+            </div>
+
+            <PasswordInput value={password} onChange={setPassword} />
+
+            {/* Forgot-password as inline hint right where users would look for it. */}
+            <div className='-mt-1 text-right'>
+              <Link
+                to='/access/reset-password'
+                className='text-xs text-[var(--hds-muted-foreground)] underline-offset-2 hover:text-primary-600 hover:underline'
+              >
+                {t('signin.forgotPassword')}
+              </Link>
+            </div>
+
+            {error && <Alert error={error} />}
+
+            <button
+              id='submitButton'
+              type='submit'
+              disabled={!user.username.trim() || !password || submitting}
+              className='inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-base font-semibold text-white transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:cursor-not-allowed disabled:opacity-50'
+            >
+              {submitting ? t('signin.signingInButton') : t('signin.signInButton')}
+            </button>
+
+            {/* Same-width secondary CTA — matches Sign In dimensions, distinct color. */}
+            <Link
+              to='/access/register'
+              className='inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-primary-200 bg-primary-50 px-4 py-2.5 text-base font-semibold text-primary-700 transition hover:bg-primary-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40'
+            >
+              {t('signin.createAccount')}
+            </Link>
+          </form>
+
+          {/* Footer: small tertiary text links. */}
+          <div className='mt-4 border-t border-[var(--hds-border)] pt-3 text-center text-xs text-[var(--hds-muted-foreground)]'>
+            <Link
+              to='/access/change-password'
+              className='underline-offset-2 hover:text-primary-600 hover:underline'
+            >
+              {t('signin.changePassword')}
+            </Link>
+            {ctx.serviceInfo?.support && (
+              <>
+                <span className='mx-2 text-[var(--hds-border)]' aria-hidden='true'>·</span>
+                <a
+                  href={ctx.serviceInfo.support}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='underline-offset-2 hover:text-primary-600 hover:underline'
+                >
+                  {t('signin.helpdeskLink')}
+                </a>
+              </>
+            )}
+          </div>
         </div>
-
-        <PasswordInput value={password} onChange={setPassword} />
-
-        <div className='flex gap-3 pt-1'>
-          <button
-            id='submitButton'
-            type='submit'
-            disabled={!user.username.trim() || !password || submitting}
-            className='px-4 py-2 text-sm rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed'
-          >
-            Sign In
-          </button>
-          <button
-            type='button'
-            onClick={handleRefuse}
-            className='px-4 py-2 text-sm rounded-lg border border-neutral-300 hover:bg-neutral-50'
-          >
-            Cancel
-          </button>
-        </div>
-
-        {ctx.serviceInfo?.support && (
-          <p className='text-sm text-neutral-500 mt-2'>
-            Feel free to reach our{' '}
-            <a href={ctx.serviceInfo.support} target='_blank' rel='noreferrer' className='text-primary-600 underline'>
-              helpdesk
-            </a>{' '}
-            if you have questions.
-          </p>
-        )}
-      </form>
-
-      <hr className='my-4 border-neutral-200' />
-
-      <div className='space-y-2 text-left'>
-        <Link to='/access/register' className='block text-primary-600 hover:underline font-medium'>
-          Create an account
-        </Link>
-        <Link to='/access/reset-password' className='block text-primary-600 hover:underline font-medium'>
-          Forgot password
-        </Link>
-        <Link to='/access/change-password' className='block text-primary-600 hover:underline font-medium'>
-          Change password
-        </Link>
-      </div>
-
-      <Alert error={error} />
+      )}
     </div>
+  )
+}
+
+function CloseIcon () {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      width='18'
+      height='18'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden='true'
+    >
+      <line x1='18' y1='6' x2='6' y2='18' />
+      <line x1='6' y1='6' x2='18' y2='18' />
+    </svg>
   )
 }
 

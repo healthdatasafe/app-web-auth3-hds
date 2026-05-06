@@ -9,28 +9,25 @@ import SignInHub from './pages/SignInHub'
 import NotFound from './pages/NotFound'
 
 function AppLayout () {
-  const { authService, initialized } = useAuth()
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!initialized) return
-    authService.assets()
-      .then((assets: any) => {
-        assets.setAllDefaults()
-        const logo = assets._assets?.['app-web-auth3']?.logo?.url
-        if (logo) setLogoUrl(assets.relativeURL(logo))
-      })
-      .catch(() => { /* logo is optional */ })
-  }, [initialized, authService])
+  const { initialized } = useAuth()
 
   if (!initialized) {
-    return <div className='py-8 text-neutral-400'>Loading...</div>
+    return (
+      <div className='flex flex-1 items-center justify-center text-sm text-[var(--hds-muted-foreground)]'>
+        Loading…
+      </div>
+    )
   }
 
   return (
-    <div>
-      {logoUrl && <img src={logoUrl} alt='Logo' className='h-12 mx-auto mb-4' />}
-      <QueryParamGuard />
+    <div className='flex flex-1 flex-col items-center justify-center px-4 py-6 sm:py-10'>
+      {/* w-full lets per-page containers (with their own max-w-*) stretch to
+          fill the parent's content area before clamping; without it the
+          flex column's items-center collapses each route's outer div to its
+          intrinsic content width. */}
+      <div className='w-full'>
+        <QueryParamGuard />
+      </div>
     </div>
   )
 }

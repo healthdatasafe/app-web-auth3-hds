@@ -1,0 +1,107 @@
+[
+  {
+    "name": "basic-diary-read",
+    "_doc": "Minimal request — single read permission on diary, no clientData. Default scenario; checks the bare consent-dialog rendering.",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "diary", "level": "read", "defaultName": "Diary" }
+    ],
+    "languageCode": "en"
+  },
+  {
+    "name": "basic-diary-manage",
+    "_doc": "Single manage permission on diary. Same as basic-diary-read but level=manage to verify level-text rendering.",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "diary", "level": "manage", "defaultName": "Diary" }
+    ],
+    "languageCode": "en"
+  },
+  {
+    "name": "with-consent-md",
+    "_doc": "Stress-test the markdown consent message: bold, italic, list, link. Renders via marked.parse in PermissionsDialog.tsx.",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "diary", "level": "manage", "defaultName": "Diary" }
+    ],
+    "languageCode": "en",
+    "clientData": {
+      "app-web-auth:description": {
+        "type": "text/markdown",
+        "content": "**Welcome!** This test app would like access to your *Diary*.\n\n- Reads and writes diary entries.\n- Used only for UI testing.\n- See [healthdatasafe.org](https://www.healthdatasafe.org) for our policy."
+      }
+    }
+  },
+  {
+    "name": "with-consent-plaintext",
+    "_doc": "clientData consent message in plain-text shape (type: 'note/txt'). The renderer must accept this as well as text/markdown — verifies type-agnostic rendering.",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "diary", "level": "manage", "defaultName": "Diary" }
+    ],
+    "languageCode": "en",
+    "clientData": {
+      "app-web-auth:description": {
+        "type": "note/txt",
+        "content": "This test app would like access to your Diary. No formatting; just plain text. Used only for UI testing — accept or reject as you like."
+      }
+    }
+  },
+  {
+    "name": "manage-all",
+    "_doc": "Wildcard manage — surfaces the '* (all data)' rendering and the 'broad permission' affordance.",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "*", "level": "manage", "defaultName": "All data" }
+    ],
+    "languageCode": "en"
+  },
+  {
+    "name": "multi-permission",
+    "_doc": "Several permissions to test list rendering, scrolling, and overflow at narrow widths (popup mode is ~400px).",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "diary", "level": "manage", "defaultName": "Diary" },
+      { "streamId": "body", "level": "read", "defaultName": "Body" },
+      { "streamId": "fertility-monitoring", "level": "manage", "defaultName": "Fertility Monitoring" },
+      { "streamId": "doctor-shared", "level": "contribute", "defaultName": "Doctor-Shared" },
+      { "streamId": "treatment", "level": "read", "defaultName": "Treatment" }
+    ],
+    "languageCode": "en"
+  },
+  {
+    "name": "with-return-url",
+    "_doc": "Sets returnURL so closeOrRedirect path is exercised on accept (popup-less flow).",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "diary", "level": "manage", "defaultName": "Diary" }
+    ],
+    "languageCode": "en",
+    "returnURL": "https://demo-doctor-dashboard.datasafe.dev/#"
+  },
+  {
+    "name": "with-expire-after",
+    "_doc": "Includes expireAfter so PermissionsDialog renders the 'Will expire after: …s' line.",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "diary", "level": "read", "defaultName": "Diary" }
+    ],
+    "languageCode": "en",
+    "expireAfter": 3600
+  },
+  {
+    "name": "lang-fr",
+    "_doc": "languageCode=fr — checks copy + i18n surface (heading, button labels, error strings).",
+    "requestingAppId": "test-auth-app",
+    "requestedPermissions": [
+      { "streamId": "diary", "level": "manage", "defaultName": "Journal" }
+    ],
+    "languageCode": "fr",
+    "clientData": {
+      "app-web-auth:description": {
+        "type": "text/markdown",
+        "content": "**Bienvenue!** Cette application de test souhaite accéder à votre *Journal*."
+      }
+    }
+  }
+]

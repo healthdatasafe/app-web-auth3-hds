@@ -43,6 +43,7 @@ export interface User {
 export interface AuthContextValue {
   appId: string
   language: string
+  setLanguage: React.Dispatch<React.SetStateAction<string>>
   authService: AuthService
   accessState: AccessState | null
   user: User
@@ -144,6 +145,7 @@ export function AuthProvider ({ children }: { children: React.ReactNode }) {
   const value: AuthContextValue = {
     appId: APP_ID,
     language,
+    setLanguage,
     authService,
     accessState,
     user,

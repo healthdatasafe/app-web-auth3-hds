@@ -2,10 +2,17 @@
 @import "hds-style/css/theme.css";
 @import "hds-style/css/palettes.css";
 
-#root {
+html, body, #root {
+  min-height: 100vh;
+}
+
+body {
   font-family: 'Inter', sans-serif;
-  text-align: center;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
+  background-color: var(--hds-background);
+  color: var(--hds-foreground);
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
 }
