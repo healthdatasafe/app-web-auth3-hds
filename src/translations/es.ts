@@ -44,6 +44,20 @@ const es: Translations = {
     hide: 'Ocultar contraseña',
     required: 'La contraseña es obligatoria.',
     confirmationMismatch: 'La confirmación de la contraseña no coincide.'
+  },
+  consent: {
+    title: 'Autorizar a {{appId}}',
+    intro: 'Esta aplicación solicita acceso a tu cuenta de Health Data Safe.',
+    permissionsHeading: '{{appId}} desea:',
+    levelRead: 'Consultar',
+    levelContribute: 'Añadir a',
+    levelManage: 'Gestionar',
+    streamAll: 'todos tus datos',
+    expiresAfter: 'Este acceso caducará dentro de {{seconds}}s.',
+    mismatchWarning: 'Ya has concedido a esta aplicación un acceso distinto. Continuar lo reemplazará.',
+    accept: 'Aceptar',
+    reject: 'Rechazar',
+    revokeNote: 'Puedes revocar este acceso en cualquier momento desde tu cuenta.'
   }
 }
 

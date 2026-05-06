@@ -43,6 +43,20 @@ const en = {
     hide: 'Hide password',
     required: 'Password is required.',
     confirmationMismatch: 'Password confirmation does not match.'
+  },
+  consent: {
+    title: 'Authorise {{appId}}',
+    intro: 'This app is requesting access to your Health Data Safe account.',
+    permissionsHeading: '{{appId}} would like to:',
+    levelRead: 'View',
+    levelContribute: 'Add to',
+    levelManage: 'Manage',
+    streamAll: 'all your data',
+    expiresAfter: 'This access will expire after {{seconds}}s.',
+    mismatchWarning: 'You have already given this app a different access. Continuing replaces the previous one.',
+    accept: 'Accept',
+    reject: 'Reject',
+    revokeNote: 'You can revoke this access at any time from your account.'
   }
 } as const
 

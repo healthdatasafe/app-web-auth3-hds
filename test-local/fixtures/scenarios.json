@@ -58,14 +58,15 @@
   },
   {
     "name": "multi-permission",
-    "_doc": "Several permissions to test list rendering, scrolling, and overflow at narrow widths (popup mode is ~400px).",
+    "_doc": "Six permissions: 2× each level (manage/contribute/read). Stress-tests the consent dialog's per-level icon rendering, list spacing, and scrolling on narrow viewports (popup mode is ~400 px).",
     "requestingAppId": "test-auth-app",
     "requestedPermissions": [
       { "streamId": "diary", "level": "manage", "defaultName": "Diary" },
-      { "streamId": "body", "level": "read", "defaultName": "Body" },
-      { "streamId": "fertility-monitoring", "level": "manage", "defaultName": "Fertility Monitoring" },
-      { "streamId": "doctor-shared", "level": "contribute", "defaultName": "Doctor-Shared" },
-      { "streamId": "treatment", "level": "read", "defaultName": "Treatment" }
+      { "streamId": "fertility-monitoring", "level": "manage", "defaultName": "Fertility monitoring" },
+      { "streamId": "doctor-shared", "level": "contribute", "defaultName": "Doctor-shared notes" },
+      { "streamId": "lab-results", "level": "contribute", "defaultName": "Lab results" },
+      { "streamId": "body", "level": "read", "defaultName": "Body measurements" },
+      { "streamId": "medications", "level": "read", "defaultName": "Medications" }
     ],
     "languageCode": "en"
   },

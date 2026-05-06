@@ -44,6 +44,20 @@ const fr: Translations = {
     hide: 'Masquer le mot de passe',
     required: 'Le mot de passe est obligatoire.',
     confirmationMismatch: 'La confirmation du mot de passe ne correspond pas.'
+  },
+  consent: {
+    title: 'Autoriser {{appId}}',
+    intro: 'Cette application demande l’accès à votre compte Health Data Safe.',
+    permissionsHeading: '{{appId}} souhaite :',
+    levelRead: 'Consulter',
+    levelContribute: 'Ajouter à',
+    levelManage: 'Gérer',
+    streamAll: 'toutes vos données',
+    expiresAfter: 'Cet accès expirera dans {{seconds}}s.',
+    mismatchWarning: 'Vous avez déjà donné un accès différent à cette application. Continuer remplace le précédent.',
+    accept: 'Accepter',
+    reject: 'Refuser',
+    revokeNote: 'Vous pouvez révoquer cet accès à tout moment depuis votre compte.'
   }
 }
 
