@@ -45,50 +45,56 @@ export default function LanguageSelector ({ className = '' }: { className?: stri
     }
   }, [open])
 
+  // Outer wrapper takes the parent's positioning class without conflict
+  // (Tailwind v4's category sort would let a baked-in `relative` win over an
+  // externally-passed `absolute`). The popover-anchoring `relative` lives on
+  // an inner wrapper that holds just the trigger + popover.
   return (
-    <div ref={ref} className={`relative inline-block ${className}`}>
-      <button
-        type='button'
-        onClick={() => setOpen(o => !o)}
-        aria-haspopup='listbox'
-        aria-expanded={open}
-        aria-label={FULL[active]}
-        className='inline-flex h-9 items-center gap-1 rounded-md px-2 text-xs font-semibold text-[var(--hds-muted-foreground)] transition hover:bg-[var(--hds-muted)] hover:text-[var(--hds-foreground)] focus:outline-none focus:ring-2 focus:ring-primary-500/40'
-      >
-        <span>{CODE[active]}</span>
-        <ChevronDown className={`transition ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <ul
-          role='listbox'
-          aria-label='Language'
-          className='absolute left-0 top-full z-10 mt-1 min-w-[8rem] overflow-hidden rounded-lg border border-[var(--hds-border)] bg-[var(--hds-card)] py-1 text-sm shadow-lg'
+    <div ref={ref} className={className}>
+      <div className='relative inline-block'>
+        <button
+          type='button'
+          onClick={() => setOpen(o => !o)}
+          aria-haspopup='listbox'
+          aria-expanded={open}
+          aria-label={FULL[active]}
+          className='inline-flex h-9 items-center gap-1 rounded-md px-2 text-xs font-semibold text-[var(--hds-muted-foreground)] transition hover:bg-[var(--hds-muted)] hover:text-[var(--hds-foreground)] focus:outline-none focus:ring-2 focus:ring-primary-500/40'
         >
-          {SUPPORTED_LANGS.map(lang => {
-            const isActive = lang === active
-            return (
-              <li key={lang} role='option' aria-selected={isActive}>
-                <button
-                  type='button'
-                  onClick={() => { setLanguage(lang); setOpen(false) }}
-                  className={
-                    'flex w-full items-center justify-between gap-3 px-3 py-2 text-left transition ' +
-                    (isActive
-                      ? 'bg-primary-50 font-semibold text-primary-700'
-                      : 'text-[var(--hds-foreground)] hover:bg-[var(--hds-muted)]')
-                  }
-                >
-                  <span>{FULL[lang]}</span>
-                  <span className='text-[10px] font-semibold uppercase tracking-wider text-[var(--hds-muted-foreground)]'>
-                    {CODE[lang]}
-                  </span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
+          <span>{CODE[active]}</span>
+          <ChevronDown className={`transition ${open ? 'rotate-180' : ''}`} />
+        </button>
+
+        {open && (
+          <ul
+            role='listbox'
+            aria-label='Language'
+            className='absolute left-0 top-full z-10 mt-1 min-w-[8rem] overflow-hidden rounded-lg border border-[var(--hds-border)] bg-[var(--hds-card)] py-1 text-sm shadow-lg'
+          >
+            {SUPPORTED_LANGS.map(lang => {
+              const isActive = lang === active
+              return (
+                <li key={lang} role='option' aria-selected={isActive}>
+                  <button
+                    type='button'
+                    onClick={() => { setLanguage(lang); setOpen(false) }}
+                    className={
+                      'flex w-full items-center justify-between gap-3 px-3 py-2 text-left transition ' +
+                      (isActive
+                        ? 'bg-primary-50 font-semibold text-primary-700'
+                        : 'text-[var(--hds-foreground)] hover:bg-[var(--hds-muted)]')
+                    }
+                  >
+                    <span>{FULL[lang]}</span>
+                    <span className='text-[10px] font-semibold uppercase tracking-wider text-[var(--hds-muted-foreground)]'>
+                      {CODE[lang]}
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }

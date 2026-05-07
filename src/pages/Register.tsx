@@ -88,7 +88,7 @@ export default function Register () {
   return (
     <div className='font-body text-[var(--hds-foreground)]'>
       <div className='relative mx-auto w-full max-w-md rounded-2xl border border-[var(--hds-border)] bg-[var(--hds-card)] p-6 text-left shadow-sm sm:p-7'>
-        <LanguageSelector className='absolute left-2 top-2' />
+        <LanguageSelector className='absolute left-3 top-3' />
 
         <header className='mb-4 text-center'>
           {logoUrl && (

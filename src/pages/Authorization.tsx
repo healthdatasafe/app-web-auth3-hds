@@ -250,7 +250,7 @@ export default function Authorization () {
       {showSignInForm && (
         <div className='relative mx-auto w-full max-w-md rounded-2xl border border-[var(--hds-border)] bg-[var(--hds-card)] p-6 text-left shadow-sm sm:p-7'>
           {/* Language picker — top-left of the card, mirror of X close. */}
-          <LanguageSelector className='absolute left-2 top-2' />
+          <LanguageSelector className='absolute left-3 top-3' />
 
           {/* X close — only renders when there's an auth-request to refuse. */}
           {accessState && (
