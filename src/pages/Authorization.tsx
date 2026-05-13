@@ -133,13 +133,8 @@ export default function Authorization () {
     setError('')
     try {
       const { checkAppResult: car } = ctx
-      // Delete mismatching access first
-      if (car.mismatchingAccess) {
-        const del = await authService.deleteAppAccess(user.username, user.personalToken, car.mismatchingAccess.id)
-        if (!del.id) throw new Error('Failed removing existing access')
-      }
 
-      // Ensure base streams if needed
+      // Ensure base streams if needed (shared by both paths)
       const clientData = accessState?.clientData || {}
       if (clientData['app-web-auth:ensureBaseStreams']) {
         const calls = clientData['app-web-auth:ensureBaseStreams'].map((params: any) => ({
@@ -149,21 +144,28 @@ export default function Authorization () {
         await authService.apiBatchCall(user.username, user.personalToken, calls)
       }
 
-      const requestData: any = {
-        permissions: car.checkedPermissions,
-        name: accessState?.requestingAppId,
-        type: 'app'
-      }
-      for (const key of ['deviceName', 'token', 'expireAfter']) {
-        if ((accessState as any)?.[key] !== undefined) {
-          requestData[key] = (accessState as any)[key]
+      let appAccess: any
+      if (car.mismatchingAccess) {
+        // Plan 66 / Plan 58 Phase 5: in-place update preserves the token (and apiEndpoint),
+        // so any external app still holding the old apiEndpoint keeps working. Replaces the
+        // old delete+create which forced a token rotation. 1-retry on 409 stale-resource.
+        appAccess = await updateMismatchingAccess(car.mismatchingAccess, clientData)
+      } else {
+        const requestData: any = {
+          permissions: car.checkedPermissions,
+          name: accessState?.requestingAppId,
+          type: 'app'
         }
+        for (const key of ['deviceName', 'token', 'expireAfter']) {
+          if ((accessState as any)?.[key] !== undefined) {
+            requestData[key] = (accessState as any)[key]
+          }
+        }
+        if (Object.keys(clientData).length > 0) {
+          requestData.clientData = clientData
+        }
+        appAccess = await authService.createAppAccess(user.username, user.personalToken, requestData)
       }
-      if (Object.keys(clientData).length > 0) {
-        requestData.clientData = clientData
-      }
-
-      const appAccess = await authService.createAppAccess(user.username, user.personalToken, requestData)
 
       const acceptedState = {
         status: ACCEPTED_STATUS,
@@ -176,6 +178,44 @@ export default function Authorization () {
     } catch (err: any) {
       setError(parseError(err))
     }
+  }
+
+  /**
+   * Update an existing app access in place with the user-confirmed permissions
+   * and any new clientData. 1-retry on 409 stale-resource: another writer may
+   * have updated the access between our `checkApp` and now — re-check, pick up
+   * the fresh mismatchingAccess, retry once.
+   */
+  async function updateMismatchingAccess (mismatchingAccess: any, clientData: any): Promise<any> {
+    const { checkAppResult: car } = ctx
+    const update: any = { permissions: car.checkedPermissions }
+    // Server merges clientData (Plan 66 verified on demo); only send the new keys.
+    if (Object.keys(clientData).length > 0) update.clientData = clientData
+    for (const key of ['deviceName', 'expireAfter']) {
+      if ((accessState as any)?.[key] !== undefined) update[key] = (accessState as any)[key]
+    }
+
+    let current = mismatchingAccess
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await authService.updateAppAccess(user.username, user.personalToken, current.id, update)
+      if (res.access) {
+        return res.access
+      }
+      if (res.error?.id === 'stale-resource' && attempt === 0) {
+        // Refetch via checkApp to get the fresh mismatchingAccess (composite id may have advanced)
+        const checkData: any = {}
+        for (const key of ['requestingAppId', 'requestedPermissions', 'deviceName', 'token', 'expireAfter', 'clientData']) {
+          const v = (accessState as any)?.[key]
+          if (v != null) checkData[key] = v
+        }
+        const fresh = await authService.checkAppAccess(user.username, user.personalToken, checkData)
+        if (!fresh.mismatchingAccess) throw new Error('Access disappeared during update')
+        current = fresh.mismatchingAccess
+        continue
+      }
+      throw new Error(res.error?.message || 'Failed updating existing access')
+    }
+    throw new Error('Failed updating existing access after retry')
   }
 
   async function handleRefuse () {

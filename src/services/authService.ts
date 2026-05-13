@@ -195,6 +195,23 @@ export class AuthService {
     return res.accessDeletion
   }
 
+  /**
+   * Plan 66 / Plan 58 Phase 5: update an existing access in place rather than
+   * delete + create. Used by Authorization.tsx when `accesses.checkApp` returns
+   * a `mismatchingAccess` (an app access exists with different permissions/clientData).
+   *
+   * Returns `{ access }` on success or `{ error }` on failure. Stale-resource
+   * (409) is surfaced as `error.id === 'stale-resource'` for the caller to
+   * detect and retry.
+   */
+  async updateAppAccess (username: string, personalToken: string, accessId: string, update: any): Promise<any> {
+    const connection = this.connectionFor(username, personalToken)
+    const [res] = await connection.api([
+      { method: 'accesses.update', params: { id: accessId, update } }
+    ])
+    return res
+  }
+
   async apiBatchCall (username: string, personalToken: string, calls: any[]): Promise<any> {
     const connection = this.connectionFor(username, personalToken)
     return await connection.api(calls)
