@@ -191,7 +191,7 @@ export default function Authorization () {
     // accesses.update's schema strictly rejects extras (name, defaultName) that
     // accesses.checkApp adds to checkedPermissions. Strip to canonical shape:
     // either {streamId, level} or {feature, setting}.
-    const cleanedPermissions = car.checkedPermissions.map((p: any) => {
+    const cleanedPermissions = (car.checkedPermissions || []).map((p: any) => {
       if (p.streamId) return { streamId: p.streamId, level: p.level }
       if (p.feature) return { feature: p.feature, setting: p.setting }
       return p
