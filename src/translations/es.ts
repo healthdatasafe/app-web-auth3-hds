@@ -109,8 +109,9 @@ const es: Translations = {
     levelManage: 'Gestionar',
     streamAll: 'todos tus datos',
     expiresAfter: 'Este acceso caducará dentro de {{seconds}}s.',
-    mismatchWarning: 'Ya has concedido a esta aplicación un acceso distinto. Continuar lo reemplazará.',
+    mismatchWarning: 'Estos permisos difieren de los concedidos anteriormente. Continuar solicitará el consentimiento del paciente para actualizar el acceso; tu aplicación seguirá funcionando con los permisos actuales hasta que el paciente acepte.',
     accept: 'Aceptar',
+    acceptScopeUpdate: 'Solicitar actualización de permisos',
     reject: 'Rechazar',
     revokeNote: 'Puedes revocar este acceso en cualquier momento desde tu cuenta.'
   }

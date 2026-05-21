@@ -146,10 +146,12 @@ export default function Authorization () {
 
       let appAccess: any
       if (car.mismatchingAccess) {
-        // Plan 66 / Plan 58 Phase 5: in-place update preserves the token (and apiEndpoint),
-        // so any external app still holding the old apiEndpoint keeps working. Replaces the
-        // old delete+create which forced a token rotation. 1-retry on 409 stale-resource.
-        appAccess = await updateMismatchingAccess(car.mismatchingAccess, clientData)
+        // Plan 59 Phase 5c: the mismatched access is a CMC counterparty access.
+        // We cannot directly update its permissions — the CMC scope-update protocol
+        // mediates the change via the patient's consent. Fire `cmc.requestScopeUpdate`
+        // and continue the auth handshake with the EXISTING (lesser) permissions.
+        // The doctor's app keeps working until the patient accepts.
+        appAccess = await requestCmcScopeUpdateFlow(car.mismatchingAccess)
       } else {
         const requestData: any = {
           permissions: car.checkedPermissions,
@@ -181,49 +183,58 @@ export default function Authorization () {
   }
 
   /**
-   * Update an existing app access in place with the user-confirmed permissions
-   * and any new clientData. 1-retry on 409 stale-resource: another writer may
-   * have updated the access between our `checkApp` and now — re-check, pick up
-   * the fresh mismatchingAccess, retry once.
+   * Plan 59 Phase 5c: when `accesses.checkApp` returns a `mismatchingAccess`,
+   * the existing access is a CMC counterparty access whose permissions don't
+   * match the form-spec's current `requestedPermissions`. We can't mutate
+   * counterparty-access permissions directly — they're server-managed by the
+   * CMC plugin. Instead, fire `cmc.requestScopeUpdate` which writes a
+   * `consent/scope-request-cmc` event proposing the new permissions; the
+   * patient sees the request on their hds-webapp Tasks UI (Phase 5a) and
+   * accepts/refuses. On accept, the plugin's `accessesUpdateHook` updates
+   * the counterparty access automatically.
+   *
+   * The auth handshake completes here with the EXISTING access (token + apiEndpoint
+   * preserved) — the doctor's app keeps working with the current (lesser)
+   * permissions until the patient acts. The Plan 58 `accesses.update` path
+   * has been superseded by this CMC flow; there is no fallback branch.
    */
-  async function updateMismatchingAccess (mismatchingAccess: any, clientData: any): Promise<any> {
+  async function requestCmcScopeUpdateFlow (mismatchingAccess: any): Promise<any> {
+    const cmcMarkers = mismatchingAccess?.clientData?.cmc
+    if (cmcMarkers?.role !== 'counterparty') {
+      throw new Error(
+        'Phase 5c: mismatchingAccess is not a CMC counterparty access ' +
+        '(clientData.cmc.role !== "counterparty"). Plan 58\'s accesses.update ' +
+        'fallback was removed per the locked decision.'
+      )
+    }
+    const collectorStreamId = cmcMarkers.counterparty?.remoteCollectorStreamId
+    if (!collectorStreamId) {
+      throw new Error(
+        'Phase 5c: clientData.cmc.counterparty.remoteCollectorStreamId missing ' +
+        'on the mismatched access; cannot route the scope-update request.'
+      )
+    }
+
     const { checkAppResult: car } = ctx
-    // accesses.update's schema strictly rejects extras (name, defaultName) that
-    // accesses.checkApp adds to checkedPermissions. Strip to canonical shape:
-    // either {streamId, level} or {feature, setting}.
+    // accesses.checkApp adds extras (name, defaultName) to checkedPermissions;
+    // strip to canonical {streamId, level} or {feature, setting} shape.
     const cleanedPermissions = (car.checkedPermissions || []).map((p: any) => {
       if (p.streamId) return { streamId: p.streamId, level: p.level }
       if (p.feature) return { feature: p.feature, setting: p.setting }
       return p
     })
-    const update: any = { permissions: cleanedPermissions }
-    // Server merges clientData (Plan 66 verified on demo); only send the new keys.
-    if (Object.keys(clientData).length > 0) update.clientData = clientData
-    for (const key of ['deviceName', 'expireAfter']) {
-      if ((accessState as any)?.[key] !== undefined) update[key] = (accessState as any)[key]
+
+    const res = await authService.requestCmcScopeUpdate(user.username, user.personalToken, {
+      collectorStreamId,
+      newPermissions: cleanedPermissions,
+    })
+    if ('error' in res) {
+      throw new Error(res.error.message || 'Failed proposing CMC scope update')
     }
 
-    let current = mismatchingAccess
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const res = await authService.updateAppAccess(user.username, user.personalToken, current.id, update)
-      if (res.access) {
-        return res.access
-      }
-      if (res.error?.id === 'stale-resource' && attempt === 0) {
-        // Refetch via checkApp to get the fresh mismatchingAccess (composite id may have advanced)
-        const checkData: any = {}
-        for (const key of ['requestingAppId', 'requestedPermissions', 'deviceName', 'token', 'expireAfter', 'clientData']) {
-          const v = (accessState as any)?.[key]
-          if (v != null) checkData[key] = v
-        }
-        const fresh = await authService.checkAppAccess(user.username, user.personalToken, checkData)
-        if (!fresh.mismatchingAccess) throw new Error('Access disappeared during update')
-        current = fresh.mismatchingAccess
-        continue
-      }
-      throw new Error(res.error?.message || 'Failed updating existing access')
-    }
-    throw new Error('Failed updating existing access after retry')
+    // Auth handshake continues with the EXISTING access — token + apiEndpoint
+    // are preserved. The patient's accept (later) updates permissions in place.
+    return mismatchingAccess
   }
 
   async function handleRefuse () {

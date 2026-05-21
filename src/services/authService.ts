@@ -10,7 +10,7 @@
  * on non-2xx; `service.login()` throws `MfaRequiredError` (with `.mfaToken`)
  * when the core needs MFA. Pages render `err.message` directly.
  */
-import HDSLib from 'hds-lib'
+import HDSLib, { cmc } from 'hds-lib'
 const { pryv, HDSService } = HDSLib
 
 export interface Permission {
@@ -26,11 +26,40 @@ export interface AppAccess {
   permissions: Permission[]
   expires?: number
   token: string
+  /**
+   * Plan 59 Phase 5c: CMC counterparty accesses carry plugin-managed
+   * markers under `clientData.cmc`. The Authorization.tsx mismatchingAccess
+   * flow reads `clientData.cmc.counterparty.remoteCollectorStreamId` to
+   * route the scope-update request via `cmc.requestScopeUpdate`.
+   */
+  clientData?: {
+    cmc?: {
+      role?: string
+      counterparty?: {
+        username?: string
+        host?: string
+        remoteCollectorStreamId?: string
+        remoteChatStreamId?: string
+      }
+      [k: string]: unknown
+    }
+    [k: string]: unknown
+  }
 }
 
 export interface AppCheck {
   checkedPermissions?: Permission[]
   matchingAccess?: AppAccess
+  /**
+   * Plan 59 Phase 5c: an existing CMC counterparty access whose
+   * permissions don't match the form-spec's current `requestedPermissions`.
+   * Authorization.tsx routes this through `cmc.requestScopeUpdate` (writes
+   * a `consent/scope-request-cmc` event); the patient accepts/refuses on
+   * their hds-webapp Tasks UI; the plugin then updates the access
+   * automatically. The auth handshake completes with the EXISTING access
+   * (token + apiEndpoint preserved). Plan 58's `accesses.update` path has
+   * been deleted per locked decision — there is no fallback.
+   */
   mismatchingAccess?: AppAccess
 }
 
@@ -196,20 +225,39 @@ export class AuthService {
   }
 
   /**
-   * Plan 66 / Plan 58 Phase 5: update an existing access in place rather than
-   * delete + create. Used by Authorization.tsx when `accesses.checkApp` returns
-   * a `mismatchingAccess` (an app access exists with different permissions/clientData).
+   * Plan 59 Phase 5c: propose a scope update on a CMC counterparty access.
    *
-   * Returns `{ access }` on success or `{ error }` on failure. Stale-resource
-   * (409) is surfaced as `error.id === 'stale-resource'` for the caller to
-   * detect and retry.
+   * Writes a `consent/scope-request-cmc` event on `:_cmc:apps:hds-collector:<doctor-path>:collectors:<patient-slug>`
+   * (the collectorStreamId). The patient sees the request on their hds-webapp
+   * Tasks UI and accepts/refuses; on accept, the CMC plugin's
+   * `accessesUpdateHook` updates the counterparty access permissions
+   * automatically.
+   *
+   * This replaces Plan 58's `accesses.update` flow (`updateAppAccess`) — the
+   * doctor cannot directly mutate CMC counterparty access permissions; the
+   * scope-update protocol mediates it via the patient.
+   *
+   * The auth handshake completes with the EXISTING (lesser) permissions.
+   * The doctor's app continues working with current scope until the patient
+   * acts; the doctor sees a "scope-update pending" indicator until then.
    */
-  async updateAppAccess (username: string, personalToken: string, accessId: string, update: any): Promise<any> {
+  async requestCmcScopeUpdate (
+    username: string,
+    personalToken: string,
+    params: {
+      collectorStreamId: string
+      newPermissions: Permission[]
+      message?: Record<string, string>
+      expires?: number
+    }
+  ): Promise<{ scopeRequestEventId: string } | { error: { message: string; id?: string } }> {
     const connection = this.connectionFor(username, personalToken)
-    const [res] = await connection.api([
-      { method: 'accesses.update', params: { id: accessId, update } }
-    ])
-    return res
+    try {
+      return await cmc.requestScopeUpdate(connection, params)
+    } catch (err: unknown) {
+      const e = err as { id?: string; message?: string }
+      return { error: { message: e.message ?? String(err), id: e.id } }
+    }
   }
 
   async apiBatchCall (username: string, personalToken: string, calls: any[]): Promise<any> {

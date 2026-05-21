@@ -106,7 +106,7 @@ export default function PermissionsDialog ({
               onClick={onAccept}
               className='inline-flex min-h-11 items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/40'
             >
-              {t('consent.accept')}
+              {hasMismatch ? t('consent.acceptScopeUpdate') : t('consent.accept')}
             </button>
           </div>
         </div>
