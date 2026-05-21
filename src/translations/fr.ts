@@ -109,8 +109,9 @@ const fr: Translations = {
     levelManage: 'Gérer',
     streamAll: 'toutes vos données',
     expiresAfter: 'Cet accès expirera dans {{seconds}}s.',
-    mismatchWarning: 'Vous avez déjà donné un accès différent à cette application. Continuer remplace le précédent.',
+    mismatchWarning: 'Ces autorisations diffèrent de celles précédemment accordées. Continuer demandera le consentement du patient pour mettre à jour l\'accès ; votre application continuera de fonctionner avec les autorisations actuelles jusqu\'à l\'acceptation.',
     accept: 'Accepter',
+    acceptScopeUpdate: 'Demander la mise à jour',
     reject: 'Refuser',
     revokeNote: 'Vous pouvez révoquer cet accès à tout moment depuis votre compte.'
   }
