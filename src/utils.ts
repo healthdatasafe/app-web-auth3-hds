@@ -6,7 +6,11 @@ import type { AccessState } from './context/AuthContext'
  */
 export function closeOrRedirect (accessState: AccessState | null, pollUrl: string): void {
   let returnUrl = accessState?.returnURL
-  if (!returnUrl || returnUrl === 'false') {
+  // `'self'` (and the `#`-suffixed variant from pryv-lib-js) means "no
+  // redirect, the calling app polls" — treating it as a path turns it into
+  // `/access/self?…` which 404s on React Router. Match the
+  // empty / 'false' branch: just close the popup.
+  if (!returnUrl || returnUrl === 'false' || returnUrl === 'self' || returnUrl === 'self#') {
     window.close()
     return
   }
