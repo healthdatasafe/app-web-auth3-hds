@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     tailwindcss(),
     react(),
-    ...(mode !== 'raw' ? [backloop('auth', 4443) as unknown as PluginOption] : [])
+    ...(mode !== 'raw' ? [backloop('auth', Number(process.env.DEV_PORT) || 4443) as unknown as PluginOption] : [])
   ],
   build: {
     outDir: 'dist'
