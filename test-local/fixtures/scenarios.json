@@ -91,6 +91,19 @@
     "expireAfter": 3600
   },
   {
+    "name": "dr-app-like",
+    "_doc": "Mirrors doctor-dashboard's actual setupAuth request from dr-lib.ts: 4 perms incl. :_cmc:apps:hds-collector + :_cmc:inbox. Use this to exercise the doctor first-sign-in / Authorization.tsx accept-handler path (B-2026-05-22-2). returnURL points back to local dr-app for the closeOrRedirect step.",
+    "requestingAppId": "app-dr-hds",
+    "requestedPermissions": [
+      { "streamId": "app-dr-hds", "level": "manage", "defaultName": "HDS Dr App PoC" },
+      { "streamId": "profile", "level": "manage", "defaultName": "Profile" },
+      { "streamId": ":_cmc:apps:hds-collector", "level": "manage", "defaultName": "HDS CMC (collector scope)" },
+      { "streamId": ":_cmc:inbox", "level": "manage", "defaultName": "HDS CMC (inbox)" }
+    ],
+    "languageCode": "en",
+    "returnURL": "https://dr-app.backloop.dev:5565/#"
+  },
+  {
     "name": "lang-fr",
     "_doc": "languageCode=fr — checks copy + i18n surface (heading, button labels, error strings).",
     "requestingAppId": "test-auth-app",
