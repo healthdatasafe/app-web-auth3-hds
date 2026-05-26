@@ -1,6 +1,7 @@
 import { marked } from 'marked'
 import type { AccessState } from '../context/AuthContext'
 import type { AppCheck } from '../services/authService'
+import Alert from './Alert'
 import { useT } from '../i18n'
 
 interface PermissionsDialogProps {
@@ -8,6 +9,13 @@ interface PermissionsDialogProps {
   checkAppResult: AppCheck
   onAccept: () => void
   onRefuse: () => void
+  /**
+   * Error from the parent's onAccept handler (e.g. requestCmcScopeUpdate
+   * self-grant throw, ensureBaseStreams batch failure). Rendered inside
+   * the dialog so the user sees the failure instead of a silently
+   * de-pressed button (plan 61).
+   */
+  error?: string
 }
 
 type PermissionLevel = 'read' | 'contribute' | 'manage'
@@ -16,7 +24,8 @@ export default function PermissionsDialog ({
   accessState,
   checkAppResult,
   onAccept,
-  onRefuse
+  onRefuse,
+  error
 }: PermissionsDialogProps) {
   const t = useT()
   const permissions = accessState.requestedPermissions || []
@@ -92,6 +101,11 @@ export default function PermissionsDialog ({
           {/* Action bar — stacked-primary-on-top on mobile (thumb priority),
               side-by-side with primary on the right on desktop. */}
           <div className='flex flex-col-reverse gap-2 border-t border-[var(--hds-border)] px-6 py-4 sm:flex-row sm:justify-end sm:gap-3'>
+            {error && (
+              <div className='w-full'>
+                <Alert error={error} />
+              </div>
+            )}
             <button
               id='refusePermissions'
               type='button'

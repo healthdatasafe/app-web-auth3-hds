@@ -269,6 +269,7 @@ export default function Authorization () {
           checkAppResult={ctx.checkAppResult}
           onAccept={handleAccept}
           onRefuse={handleRefuse}
+          error={error}
         />
       )}
 
