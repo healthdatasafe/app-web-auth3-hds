@@ -3,4 +3,4 @@ declare global {
     __HDS_SERVICE_INFO_URL__: string;
   }
 }
-export {};
+export {}

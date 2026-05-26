@@ -3,10 +3,17 @@
 ## [Unreleased]
 
 ### Changed
+- **2026-05-26** — Error display unified across all 5 pages (sign-in / register / reset / change-password / authorization). New shared `src/parseError.ts` renders Pryv error envelopes consistently: walks `error.data` whether array (per-field validation messages like password format) or object (echoed payload from `invalid-request-structure`), appends the error `id`, and falls back to a JSON dump for unknown shapes so the UI is never silent on an unexpected error.
+- **2026-05-26** — `requestCmcScopeUpdate` now throws on failure (instead of returning `{ error }`), matching the rest of `authService` and letting the unified error-display pipeline handle it uniformly.
+- **2026-05-26** — `Authorization.tsx` `handleAccept` now checks per-result errors on the `ensureBaseStreams` batch call (via new `throwIfBatchErrors` export). Pryv batch responses return HTTP 200 even when individual ops fail; the prior code silently swallowed those.
 - **2026-05-06** — Hostnames flipped to `demo-account.datasafe.dev` (demo) and `account.datasafe.dev` (prod), replacing `demo-auth.datasafe.dev` / `auth.datasafe.dev`. Source-of-truth tracked in `dev-deploy/config/apps.yml § app-web-auth3-hds` and `pryv.open-pryv-io.auth-urls`. Plan: `_plans/55-app-web-auth3-rewrite-and-pwd-reset-atwork/`.
 - **2026-05-06** — Hardened `scripts/deploy.sh` and `scripts/deploy-prod.sh`: reset to `origin/gh-pages` (resp. `origin/main`) before build, `.nojekyll` touch, post-build sanity check (assert `index.html`, `404.html`, `CNAME`, `assets/index-*.js`, expected CNAME content).
 
 ### Fixed
+- **2026-05-26** — `closeOrRedirect` no longer navigates to `/access/self` (a 404) when the auth flow's `returnURL` is the sentinel value `self` (or `self#`). It now closes the popup, matching the empty / `'false'` branch.
+- **2026-05-26** — Account-creation password-format errors now show the specific message (e.g. "Password should have between 5 and 23 characters") instead of only the generic "Parameters' format is invalid" wrapper.
+- **2026-05-26** — Permission-acceptance failures (e.g. server rejecting a `streamId`) now display the underlying server error to the user instead of silently freezing the UI.
+- **2026-05-26** — Added `@tailwindcss/typography` as a devDependency so `npm run build` succeeds end-to-end (the symlinked `hds-style` consumes it). Auto-fixed pre-existing semi-style lint errors in `src/global.d.ts` + `src/loadSettings.ts`.
 - **2026-05-06** — React rewrite (`feat/react-rewrite`) was runtime-broken end-to-end against `pryv-lib@3.0.3` because `pryv.utils.superagent` was dropped in v3. Migrated 16 HTTP call sites in `src/services/authService.ts` from superagent's chained API to `pryv.utils.fetchPost` / `fetchGet` (raw `fetch` for `DELETE`). Also `src/context/AuthContext.tsx` (poll-URL GET in `init()` + POST in `updateAccessState()`). Plus a null-guard in `src/pages/Authorization.tsx:82-87` so `clientData: null` from the auth-request payload isn't forwarded to `/accesses/check-app` (the Pryv API rejects null with `400 invalid-parameters-format`).
 
 ## [1.1.0] - 2025-05-13
