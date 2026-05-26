@@ -6,6 +6,7 @@ import PasswordInput from '../components/PasswordInput'
 import Alert from '../components/Alert'
 import LanguageSelector from '../components/LanguageSelector'
 import type { HostingSelectionItem } from '../services/authService'
+import { parseError } from '../parseError'
 
 export default function Register () {
   const { authService, user, setUser, isAccessRequest, language, appId, accessState, serviceInfo } = useAuth()
@@ -239,14 +240,4 @@ function randomString (length: number): string {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return result
-}
-
-function parseError (err: any): string {
-  if (typeof err === 'string') return err
-  if (err?.response?.body) {
-    const body = err.response.body
-    const enc = body.error || body
-    return enc.detail || enc.message || 'Unexpected error'
-  }
-  return err?.message || err?.msg || 'Unexpected error'
 }

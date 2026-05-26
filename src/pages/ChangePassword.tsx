@@ -5,6 +5,7 @@ import { useT } from '../i18n'
 import PasswordInput from '../components/PasswordInput'
 import Alert from '../components/Alert'
 import LanguageSelector from '../components/LanguageSelector'
+import { parseError } from '../parseError'
 
 export default function ChangePassword () {
   const { authService, user, setUser, isAccessRequest, appId } = useAuth()
@@ -138,14 +139,4 @@ export default function ChangePassword () {
       </div>
     </div>
   )
-}
-
-function parseError (err: any): string {
-  if (typeof err === 'string') return err
-  if (err?.response?.body) {
-    const body = err.response.body
-    const enc = body.error || body
-    return enc.detail || enc.message || 'Unexpected error'
-  }
-  return err?.message || err?.msg || 'Unexpected error'
 }

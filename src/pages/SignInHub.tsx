@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useT } from '../i18n'
 import Alert from '../components/Alert'
 import LanguageSelector from '../components/LanguageSelector'
+import { parseError } from '../parseError'
 
 export default function SignInHub () {
   const { authService, user, setUser } = useAuth()
@@ -107,14 +108,4 @@ export default function SignInHub () {
       </div>
     </div>
   )
-}
-
-function parseError (err: any): string {
-  if (typeof err === 'string') return err
-  if (err?.response?.body) {
-    const body = err.response.body
-    const enc = body.error || body
-    return enc.detail || enc.message || 'Unexpected error'
-  }
-  return err?.message || err?.msg || 'Unexpected error'
 }

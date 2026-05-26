@@ -7,6 +7,8 @@ import PermissionsDialog from '../components/PermissionsDialog'
 import Alert from '../components/Alert'
 import LanguageSelector from '../components/LanguageSelector'
 import { closeOrRedirect } from '../utils'
+import { parseError } from '../parseError'
+import { throwIfBatchErrors } from '../services/authService'
 
 const ACCEPTED_STATUS = 'ACCEPTED'
 const REFUSED_STATUS = 'REFUSED'
@@ -141,7 +143,10 @@ export default function Authorization () {
           method: 'streams.create',
           params
         }))
-        await authService.apiBatchCall(user.username, user.personalToken, calls)
+        const results = await authService.apiBatchCall(user.username, user.personalToken, calls)
+        // Pryv batch responses are HTTP 200 even when individual ops fail.
+        // Surface those failures so the user sees them instead of a frozen UI.
+        throwIfBatchErrors(results)
       }
 
       let appAccess: any
@@ -224,13 +229,12 @@ export default function Authorization () {
       return p
     })
 
-    const res = await authService.requestCmcScopeUpdate(user.username, user.personalToken, {
+    // Throws on failure; the surrounding handleAccept's catch + parseError
+    // surfaces the underlying server error to the user.
+    await authService.requestCmcScopeUpdate(user.username, user.personalToken, {
       collectorStreamId,
       newPermissions: cleanedPermissions,
     })
-    if ('error' in res) {
-      throw new Error(res.error.message || 'Failed proposing CMC scope update')
-    }
 
     // Auth handshake continues with the EXISTING access — token + apiEndpoint
     // are preserved. The patient's accept (later) updates permissions in place.
@@ -444,22 +448,4 @@ function CloseIcon () {
       <line x1='6' y1='6' x2='18' y2='18' />
     </svg>
   )
-}
-
-function parseError (err: any): string {
-  if (typeof err === 'string') return err
-  if (err?.response?.body) {
-    const body = err.response.body
-    const enc = body.error || body
-    let msg = enc.detail || enc.message || 'Unexpected error'
-    if (body.error?.data && Array.isArray(body.error.data)) {
-      msg += body.error.data.map((e: any) => `<br/>${e.message}`).join('')
-    }
-    const subs = enc.body || body.errors
-    if (Array.isArray(subs)) {
-      msg += subs.map((s: any) => `<br/>${s.detail || s.message}`).join('')
-    }
-    return msg
-  }
-  return err?.message || 'Unexpected error'
 }

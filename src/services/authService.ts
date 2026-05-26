@@ -250,14 +250,9 @@ export class AuthService {
       message?: Record<string, string>
       expires?: number
     }
-  ): Promise<{ scopeRequestEventId: string } | { error: { message: string; id?: string } }> {
+  ): Promise<{ scopeRequestEventId: string }> {
     const connection = this.connectionFor(username, personalToken)
-    try {
-      return await cmc.requestScopeUpdate(connection, params)
-    } catch (err: unknown) {
-      const e = err as { id?: string; message?: string }
-      return { error: { message: e.message ?? String(err), id: e.id } }
-    }
+    return await cmc.requestScopeUpdate(connection, params)
   }
 
   async apiBatchCall (username: string, personalToken: string, calls: any[]): Promise<any> {
@@ -279,4 +274,17 @@ function throwIfApiError (res: any): void {
     err.response = { body: { error: res.error } }
     throw err
   }
+}
+
+/**
+ * Throws on the first per-result error in a Pryv batch response, with the
+ * full server envelope attached for `parseError` to render. Use this on any
+ * `connection.api([...])` / `apiBatchCall` result whose errors would
+ * otherwise be silently dropped — Pryv batch calls return HTTP 200 even
+ * when individual operations fail, so a caller that ignores the result
+ * array swallows the failure.
+ */
+export function throwIfBatchErrors (results: any[]): void {
+  if (!Array.isArray(results)) return
+  for (const r of results) throwIfApiError(r)
 }
