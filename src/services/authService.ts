@@ -283,8 +283,17 @@ function throwIfApiError (res: any): void {
  * otherwise be silently dropped — Pryv batch calls return HTTP 200 even
  * when individual operations fail, so a caller that ignores the result
  * array swallows the failure.
+ *
+ * Pass `{ ignoreCodes }` to tolerate specific Pryv error ids — useful for
+ * idempotent provisioning batches (e.g. ensureBaseStreams' `streams.create`
+ * calls, where `'item-already-exists'` is the expected benign outcome on
+ * any subsequent grant against an account that was already provisioned).
  */
-export function throwIfBatchErrors (results: any[]): void {
+export function throwIfBatchErrors (results: any[], opts?: { ignoreCodes?: string[] }): void {
   if (!Array.isArray(results)) return
-  for (const r of results) throwIfApiError(r)
+  const ignore = new Set(opts?.ignoreCodes ?? [])
+  for (const r of results) {
+    if (r?.error && ignore.has(r.error.id)) continue
+    throwIfApiError(r)
+  }
 }

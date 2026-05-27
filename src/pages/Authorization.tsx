@@ -145,8 +145,12 @@ export default function Authorization () {
         }))
         const results = await authService.apiBatchCall(user.username, user.personalToken, calls)
         // Pryv batch responses are HTTP 200 even when individual ops fail.
-        // Surface those failures so the user sees them instead of a frozen UI.
-        throwIfBatchErrors(results)
+        // Surface real failures, but tolerate `item-already-exists` —
+        // ensureBaseStreams is idempotent provisioning, so any subsequent
+        // grant against an already-provisioned account hits this case by
+        // design (e.g. drbobby/drandy already have `applications` from a
+        // prior auth round).
+        throwIfBatchErrors(results, { ignoreCodes: ['item-already-exists'] })
       }
 
       let appAccess: any
