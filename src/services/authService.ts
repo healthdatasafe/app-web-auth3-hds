@@ -282,6 +282,15 @@ export class AuthService {
     mismatchingAccess: AppAccess,
     params: ReconcileParams
   ): Promise<ReconcileResult> {
+    // accesses.checkApp adds extras (name, defaultName) to checkedPermissions
+    // for display purposes; both accesses.update and cmc.requestScopeUpdate
+    // reject anything beyond the canonical {streamId, level} / {feature, setting} shape.
+    const cleanedPermissions = params.permissions.map((p: any) => {
+      if (p.streamId) return { streamId: p.streamId, level: p.level }
+      if (p.feature) return { feature: p.feature, setting: p.setting }
+      return p
+    })
+
     const cmcRole = mismatchingAccess.clientData?.cmc?.role
     if (cmcRole === 'counterparty') {
       const collectorStreamId = mismatchingAccess.clientData?.cmc?.counterparty?.remoteCollectorStreamId
@@ -290,13 +299,6 @@ export class AuthService {
           'CMC counterparty access missing clientData.cmc.counterparty.remoteCollectorStreamId; cannot route scope-update.'
         )
       }
-      // accesses.checkApp adds extras (name, defaultName) to checkedPermissions;
-      // cmc.requestScopeUpdate wants the canonical {streamId, level} / {feature, setting} shape.
-      const cleanedPermissions = params.permissions.map((p: any) => {
-        if (p.streamId) return { streamId: p.streamId, level: p.level }
-        if (p.feature) return { feature: p.feature, setting: p.setting }
-        return p
-      })
       await this.requestCmcScopeUpdate(username, personalToken, {
         collectorStreamId,
         newPermissions: cleanedPermissions,
@@ -304,7 +306,7 @@ export class AuthService {
       return { access: mismatchingAccess, requiresAsyncConsent: true }
     }
 
-    const update: any = { permissions: params.permissions }
+    const update: any = { permissions: cleanedPermissions }
     if (params.clientData && Object.keys(params.clientData).length > 0) {
       update.clientData = params.clientData
     }
