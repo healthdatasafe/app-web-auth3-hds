@@ -51,16 +51,37 @@ export interface AppCheck {
   checkedPermissions?: Permission[]
   matchingAccess?: AppAccess
   /**
-   * Plan 59 Phase 5c: an existing CMC counterparty access whose
-   * permissions don't match the form-spec's current `requestedPermissions`.
-   * Authorization.tsx routes this through `cmc.requestScopeUpdate` (writes
-   * a `consent/scope-request-cmc` event); the patient accepts/refuses on
-   * their hds-webapp Tasks UI; the plugin then updates the access
-   * automatically. The auth handshake completes with the EXISTING access
-   * (token + apiEndpoint preserved). Plan 58's `accesses.update` path has
-   * been deleted per locked decision — there is no fallback.
+   * An existing app access whose permissions don't match what the app is
+   * now requesting. Two reconciliation paths exist, dispatched by
+   * `reconcileMismatchingAccess()` based on `clientData.cmc.role`:
+   *
+   *  - **CMC counterparty access** (`clientData.cmc.role === 'counterparty'`):
+   *    plugin-managed permissions, gated by the patient's consent. Routes
+   *    through `cmc.requestScopeUpdate`; handshake completes with the
+   *    existing (lesser) access; the patient acts later.
+   *  - **Plain app access** (the common case): user-owned. Routes through
+   *    `accesses.update`; permissions take effect immediately, token +
+   *    apiEndpoint preserved.
    */
   mismatchingAccess?: AppAccess
+}
+
+export interface ReconcileParams {
+  permissions: Permission[]
+  clientData?: Record<string, unknown>
+  deviceName?: string
+  expireAfter?: number
+}
+
+export interface ReconcileResult {
+  access: AppAccess
+  /**
+   * `true` when the new permissions won't take effect immediately — the
+   * server has accepted a scope-update request that another party must
+   * accept (e.g. CMC counterparty: patient's consent). The handshake
+   * completes with the existing (lesser) access in the meantime.
+   */
+  requiresAsyncConsent: boolean
 }
 
 export interface ServiceInfo {
@@ -222,6 +243,82 @@ export class AuthService {
     ])
     throwIfApiError(res)
     return res.accessDeletion
+  }
+
+  /**
+   * Raw `accesses.update`. Returns `{access}` on success or `{error}` on
+   * failure (does not throw). Callers branch on `res.error?.id` (e.g.
+   * `'stale-resource'`).
+   */
+  async updateAppAccess (
+    username: string,
+    personalToken: string,
+    accessId: string,
+    update: any
+  ): Promise<any> {
+    const connection = this.connectionFor(username, personalToken)
+    const [res] = await connection.api([
+      { method: 'accesses.update', params: { id: accessId, update } }
+    ])
+    return res
+  }
+
+  /**
+   * Reconcile an existing access whose permissions diverged from what the
+   * app now wants. Dispatches based on who controls the access's permissions:
+   *
+   *  - CMC counterparty (`clientData.cmc.role === 'counterparty'`): permissions
+   *    are plugin-managed and gated by the patient's consent. Calls
+   *    `cmc.requestScopeUpdate` (writes a `consent/scope-request-cmc` event).
+   *    Returns the EXISTING access; the calling app keeps working with the
+   *    current (lesser) scope until the patient accepts.
+   *  - Plain app access: the authenticated user owns the access. Calls
+   *    `accesses.update` directly; new permissions take effect immediately.
+   *    Token + apiEndpoint preserved (only the composite id advances).
+   */
+  async reconcileMismatchingAccess (
+    username: string,
+    personalToken: string,
+    mismatchingAccess: AppAccess,
+    params: ReconcileParams
+  ): Promise<ReconcileResult> {
+    const cmcRole = mismatchingAccess.clientData?.cmc?.role
+    if (cmcRole === 'counterparty') {
+      const collectorStreamId = mismatchingAccess.clientData?.cmc?.counterparty?.remoteCollectorStreamId
+      if (!collectorStreamId) {
+        throw new Error(
+          'CMC counterparty access missing clientData.cmc.counterparty.remoteCollectorStreamId; cannot route scope-update.'
+        )
+      }
+      // accesses.checkApp adds extras (name, defaultName) to checkedPermissions;
+      // cmc.requestScopeUpdate wants the canonical {streamId, level} / {feature, setting} shape.
+      const cleanedPermissions = params.permissions.map((p: any) => {
+        if (p.streamId) return { streamId: p.streamId, level: p.level }
+        if (p.feature) return { feature: p.feature, setting: p.setting }
+        return p
+      })
+      await this.requestCmcScopeUpdate(username, personalToken, {
+        collectorStreamId,
+        newPermissions: cleanedPermissions,
+      })
+      return { access: mismatchingAccess, requiresAsyncConsent: true }
+    }
+
+    const update: any = { permissions: params.permissions }
+    if (params.clientData && Object.keys(params.clientData).length > 0) {
+      update.clientData = params.clientData
+    }
+    if (params.deviceName !== undefined) update.deviceName = params.deviceName
+    if (params.expireAfter !== undefined) update.expireAfter = params.expireAfter
+
+    const res = await this.updateAppAccess(username, personalToken, mismatchingAccess.id, update)
+    if (res.error) {
+      const err: any = new Error(res.error.message || 'Failed updating existing access')
+      err.id = res.error.id
+      err.response = { body: { error: res.error } }
+      throw err
+    }
+    return { access: res.access, requiresAsyncConsent: false }
   }
 
   /**

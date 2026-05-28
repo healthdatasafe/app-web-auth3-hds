@@ -155,12 +155,21 @@ export default function Authorization () {
 
       let appAccess: any
       if (car.mismatchingAccess) {
-        // Plan 59 Phase 5c: the mismatched access is a CMC counterparty access.
-        // We cannot directly update its permissions — the CMC scope-update protocol
-        // mediates the change via the patient's consent. Fire `cmc.requestScopeUpdate`
-        // and continue the auth handshake with the EXISTING (lesser) permissions.
-        // The doctor's app keeps working until the patient accepts.
-        appAccess = await requestCmcScopeUpdateFlow(car.mismatchingAccess)
+        // Reconcile divergent permissions on an existing access. The service
+        // dispatches CMC-counterparty (patient consent) vs plain app access
+        // (direct update) internally.
+        const result = await authService.reconcileMismatchingAccess(
+          user.username,
+          user.personalToken,
+          car.mismatchingAccess,
+          {
+            permissions: car.checkedPermissions || [],
+            clientData,
+            deviceName: (accessState as any)?.deviceName,
+            expireAfter: (accessState as any)?.expireAfter,
+          }
+        )
+        appAccess = result.access
       } else {
         const requestData: any = {
           permissions: car.checkedPermissions,
@@ -189,60 +198,6 @@ export default function Authorization () {
     } catch (err: any) {
       setError(parseError(err))
     }
-  }
-
-  /**
-   * Plan 59 Phase 5c: when `accesses.checkApp` returns a `mismatchingAccess`,
-   * the existing access is a CMC counterparty access whose permissions don't
-   * match the form-spec's current `requestedPermissions`. We can't mutate
-   * counterparty-access permissions directly — they're server-managed by the
-   * CMC plugin. Instead, fire `cmc.requestScopeUpdate` which writes a
-   * `consent/scope-request-cmc` event proposing the new permissions; the
-   * patient sees the request on their hds-webapp Tasks UI (Phase 5a) and
-   * accepts/refuses. On accept, the plugin's `accessesUpdateHook` updates
-   * the counterparty access automatically.
-   *
-   * The auth handshake completes here with the EXISTING access (token + apiEndpoint
-   * preserved) — the doctor's app keeps working with the current (lesser)
-   * permissions until the patient acts. The Plan 58 `accesses.update` path
-   * has been superseded by this CMC flow; there is no fallback branch.
-   */
-  async function requestCmcScopeUpdateFlow (mismatchingAccess: any): Promise<any> {
-    const cmcMarkers = mismatchingAccess?.clientData?.cmc
-    if (cmcMarkers?.role !== 'counterparty') {
-      throw new Error(
-        'Phase 5c: mismatchingAccess is not a CMC counterparty access ' +
-        '(clientData.cmc.role !== "counterparty"). Plan 58\'s accesses.update ' +
-        'fallback was removed per the locked decision.'
-      )
-    }
-    const collectorStreamId = cmcMarkers.counterparty?.remoteCollectorStreamId
-    if (!collectorStreamId) {
-      throw new Error(
-        'Phase 5c: clientData.cmc.counterparty.remoteCollectorStreamId missing ' +
-        'on the mismatched access; cannot route the scope-update request.'
-      )
-    }
-
-    const { checkAppResult: car } = ctx
-    // accesses.checkApp adds extras (name, defaultName) to checkedPermissions;
-    // strip to canonical {streamId, level} or {feature, setting} shape.
-    const cleanedPermissions = (car.checkedPermissions || []).map((p: any) => {
-      if (p.streamId) return { streamId: p.streamId, level: p.level }
-      if (p.feature) return { feature: p.feature, setting: p.setting }
-      return p
-    })
-
-    // Throws on failure; the surrounding handleAccept's catch + parseError
-    // surfaces the underlying server error to the user.
-    await authService.requestCmcScopeUpdate(user.username, user.personalToken, {
-      collectorStreamId,
-      newPermissions: cleanedPermissions,
-    })
-
-    // Auth handshake continues with the EXISTING access — token + apiEndpoint
-    // are preserved. The patient's accept (later) updates permissions in place.
-    return mismatchingAccess
   }
 
   async function handleRefuse () {

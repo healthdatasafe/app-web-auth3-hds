@@ -108,8 +108,10 @@ const en = {
     levelManage: 'Manage',
     streamAll: 'all your data',
     expiresAfter: 'This access will expire after {{seconds}}s.',
-    mismatchWarning: 'These permissions differ from those previously granted. Continuing will request the patient\'s consent to update the access; your app will keep working with the current permissions until the patient accepts.',
+    mismatchWarningUpdate: 'These permissions differ from those previously granted. Continuing will update the access in place — the new permissions take effect immediately.',
+    mismatchWarningCmc: 'These permissions differ from those previously granted. Continuing will request the patient\'s consent to update the access; your app will keep working with the current permissions until the patient accepts.',
     accept: 'Accept',
+    acceptUpdate: 'Update permissions',
     acceptScopeUpdate: 'Request permission update',
     reject: 'Reject',
     revokeNote: 'You can revoke this access at any time from your account.'

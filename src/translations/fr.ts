@@ -109,8 +109,10 @@ const fr: Translations = {
     levelManage: 'Gérer',
     streamAll: 'toutes vos données',
     expiresAfter: 'Cet accès expirera dans {{seconds}}s.',
-    mismatchWarning: 'Ces autorisations diffèrent de celles précédemment accordées. Continuer demandera le consentement du patient pour mettre à jour l\'accès ; votre application continuera de fonctionner avec les autorisations actuelles jusqu\'à l\'acceptation.',
+    mismatchWarningUpdate: 'Ces autorisations diffèrent de celles précédemment accordées. Continuer mettra à jour l\'accès — les nouvelles autorisations prennent effet immédiatement.',
+    mismatchWarningCmc: 'Ces autorisations diffèrent de celles précédemment accordées. Continuer demandera le consentement du patient pour mettre à jour l\'accès ; votre application continuera de fonctionner avec les autorisations actuelles jusqu\'à l\'acceptation.',
     accept: 'Accepter',
+    acceptUpdate: 'Mettre à jour les autorisations',
     acceptScopeUpdate: 'Demander la mise à jour',
     reject: 'Refuser',
     revokeNote: 'Vous pouvez révoquer cet accès à tout moment depuis votre compte.'

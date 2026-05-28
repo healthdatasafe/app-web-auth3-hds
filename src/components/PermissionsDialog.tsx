@@ -29,7 +29,11 @@ export default function PermissionsDialog ({
 }: PermissionsDialogProps) {
   const t = useT()
   const permissions = accessState.requestedPermissions || []
-  const hasMismatch = !!checkAppResult.mismatchingAccess
+  const mismatchingAccess = checkAppResult.mismatchingAccess
+  const hasMismatch = !!mismatchingAccess
+  // CMC counterparty mismatches go through patient consent (async);
+  // plain app mismatches update in place (sync). Copy diverges.
+  const isCmcMismatch = mismatchingAccess?.clientData?.cmc?.role === 'counterparty'
   const appId = accessState.requestingAppId || ''
 
   // Optional clientData consent message — markdown by convention but
@@ -89,7 +93,7 @@ export default function PermissionsDialog ({
                 role='alert'
                 className='mt-5 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900'
               >
-                {t('consent.mismatchWarning')}
+                {t(isCmcMismatch ? 'consent.mismatchWarningCmc' : 'consent.mismatchWarningUpdate')}
               </div>
             )}
 
@@ -120,7 +124,9 @@ export default function PermissionsDialog ({
               onClick={onAccept}
               className='inline-flex min-h-11 items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/40'
             >
-              {hasMismatch ? t('consent.acceptScopeUpdate') : t('consent.accept')}
+              {hasMismatch
+                ? t(isCmcMismatch ? 'consent.acceptScopeUpdate' : 'consent.acceptUpdate')
+                : t('consent.accept')}
             </button>
           </div>
         </div>
