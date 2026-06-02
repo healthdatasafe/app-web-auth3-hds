@@ -115,6 +115,13 @@ const en = {
     acceptScopeUpdate: 'Request permission update',
     reject: 'Reject',
     revokeNote: 'You can revoke this access at any time from your account.'
+  },
+  outcome: {
+    acceptedTitle: 'All set — you can close this tab.',
+    acceptedSubWith: '{{appId}} has received your authorization.',
+    refusedTitle: 'Sign-in cancelled.',
+    refusedSubWith: 'No access was granted to {{appId}}.',
+    closeButton: 'Close window'
   }
 }
 

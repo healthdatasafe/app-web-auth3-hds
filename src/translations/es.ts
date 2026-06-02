@@ -116,6 +116,13 @@ const es: Translations = {
     acceptScopeUpdate: 'Solicitar actualización de permisos',
     reject: 'Rechazar',
     revokeNote: 'Puedes revocar este acceso en cualquier momento desde tu cuenta.'
+  },
+  outcome: {
+    acceptedTitle: 'Listo — ya puedes cerrar esta pestaña.',
+    acceptedSubWith: '{{appId}} ha recibido tu autorización.',
+    refusedTitle: 'Inicio de sesión cancelado.',
+    refusedSubWith: 'No se ha concedido acceso a {{appId}}.',
+    closeButton: 'Cerrar ventana'
   }
 }
 

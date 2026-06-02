@@ -6,7 +6,8 @@ import PasswordInput from '../components/PasswordInput'
 import PermissionsDialog from '../components/PermissionsDialog'
 import Alert from '../components/Alert'
 import LanguageSelector from '../components/LanguageSelector'
-import { closeOrRedirect } from '../utils'
+import AuthOutcome from '../components/AuthOutcome'
+import { finaliseAuthFlow } from '../utils'
 import { parseError } from '../parseError'
 import { throwIfBatchErrors } from '../services/authService'
 
@@ -25,6 +26,10 @@ export default function Authorization () {
   const [submitting, setSubmitting] = useState(false)
   const [showPermissions, setShowPermissions] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  // When set, the auth flow has terminated and we render the outcome screen
+  // instead of the sign-in form. Only ever set when the window is a user-
+  // opened tab (script-opened popups auto-close before this can mount).
+  const [outcome, setOutcome] = useState<{ status: 'ACCEPTED' | 'REFUSED' } | null>(null)
   const mfaActivated = !!user.mfaToken
 
   // Service assets carry the logo URL via service-info; fetch once after mount.
@@ -50,7 +55,9 @@ export default function Authorization () {
       setUser({ ...user, username: trimmed })
 
       if (accessState && accessState.status !== NEED_SIGNIN_STATUS) {
-        closeOrRedirect(accessState, pollUrl)
+        if (finaliseAuthFlow(accessState, pollUrl) === 'stayed') {
+          setOutcome({ status: accessState.status === REFUSED_STATUS ? REFUSED_STATUS : ACCEPTED_STATUS })
+        }
         return
       }
 
@@ -118,7 +125,9 @@ export default function Authorization () {
         token: result.matchingAccess.token
       }
       await updateAccessState(acceptedState)
-      closeOrRedirect(accessState, pollUrl)
+      if (finaliseAuthFlow(accessState, pollUrl) === 'stayed') {
+        setOutcome({ status: ACCEPTED_STATUS })
+      }
       return
     }
 
@@ -194,7 +203,9 @@ export default function Authorization () {
         token: appAccess.token
       }
       await updateAccessState(acceptedState)
-      closeOrRedirect(accessState, pollUrl)
+      if (finaliseAuthFlow(accessState, pollUrl) === 'stayed') {
+        setOutcome({ status: ACCEPTED_STATUS })
+      }
     } catch (err: any) {
       setError(parseError(err))
     }
@@ -209,20 +220,28 @@ export default function Authorization () {
     try {
       await updateAccessState(refusedState)
     } finally {
-      closeOrRedirect(accessState, pollUrl)
+      if (finaliseAuthFlow(accessState, pollUrl) === 'stayed') {
+        setOutcome({ status: REFUSED_STATUS })
+      }
     }
   }
 
   // The sign-in form is suppressed once we've moved into the consent step
   // (PermissionsDialog) — keeps the visual hierarchy clean instead of
-  // showing a logged-in form behind the modal.
-  const showSignInForm = !showPermissions
+  // showing a logged-in form behind the modal. Also suppressed once the
+  // outcome screen takes over (user-opened tab, post-accept/refuse).
+  const showSignInForm = !showPermissions && !outcome
   const requestingAppId = accessState?.requestingAppId
 
   return (
     <div className='font-body text-[var(--hds-foreground)]'>
+      {/* Outcome — user-opened tab, terminal state. Replaces every other UI. */}
+      {outcome && (
+        <AuthOutcome status={outcome.status} appId={requestingAppId} />
+      )}
+
       {/* Permissions consent (separate component, modal). */}
-      {showPermissions && accessState && (
+      {!outcome && showPermissions && accessState && (
         <PermissionsDialog
           accessState={accessState}
           checkAppResult={ctx.checkAppResult}
@@ -233,7 +252,7 @@ export default function Authorization () {
       )}
 
       {/* MFA challenge (modal). */}
-      {mfaActivated && (
+      {!outcome && mfaActivated && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4'>
           <div className='w-full max-w-sm rounded-2xl bg-[var(--hds-card)] p-6 shadow-xl'>
             <h2 className='font-sans text-lg font-semibold text-[var(--hds-card-foreground)]'>

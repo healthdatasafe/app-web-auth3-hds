@@ -116,6 +116,13 @@ const fr: Translations = {
     acceptScopeUpdate: 'Demander la mise à jour',
     reject: 'Refuser',
     revokeNote: 'Vous pouvez révoquer cet accès à tout moment depuis votre compte.'
+  },
+  outcome: {
+    acceptedTitle: 'C’est fait — vous pouvez fermer cet onglet.',
+    acceptedSubWith: '{{appId}} a reçu votre autorisation.',
+    refusedTitle: 'Connexion annulée.',
+    refusedSubWith: 'Aucun accès n’a été accordé à {{appId}}.',
+    closeButton: 'Fermer la fenêtre'
   }
 }
 
