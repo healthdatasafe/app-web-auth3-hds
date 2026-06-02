@@ -22,7 +22,7 @@
     "webserver": "npx backloop.dev ./dist"
   },
   "dependencies": {
-    "hds-lib": "github:healthdatasafe/hds-lib-js#1.0.2",
+    "hds-lib": "github:healthdatasafe/hds-lib-js#1.1.1",
     "hds-style": "git+https://github.com/healthdatasafe/style-package.git",
     "marked": "^15.0.0",
     "react": "^19.1.0",
