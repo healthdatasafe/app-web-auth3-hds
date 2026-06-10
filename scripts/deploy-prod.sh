@@ -35,7 +35,9 @@ git -C distprod reset --hard origin/main
 git -C distprod clean -fdx
 
 echo "Building..."
-npm run build
+# NR_ENV=prod makes vite.config.ts inject the hds-prod-* New Relic Browser
+# snippet (newrelic-snippet.prod.html) instead of the dev one.
+NR_ENV=prod npm run build
 echo "Build OK."
 
 # Generate version.json

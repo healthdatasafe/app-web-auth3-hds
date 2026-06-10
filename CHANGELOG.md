@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Fixed
+- `redirectExternal` now URL-encodes all appended params (2026-06-10). Unencoded `prYvauthUrl` (a full URL) leaked its `&key=…&poll=…` into the calling app's URL as top-level params; pryv-lib-js strips only `prYv*` params when building the next returnURL, so a sign-out → sign-in in the same tab redirected to an unroutable `/&key=…` URL and the login was lost.
+
+### Added
+- New Relic Browser instrumentation (2026-06-10): `newrelic-snippet.html` / `.prod.html` (entities `hds-dev-app-web-auth3-hds` / `hds-prod-app-web-auth3-hds`), build-time injection via `newrelicBrowser()` vite plugin (same pattern as hds-webapp); `deploy-prod.sh` builds with `NR_ENV=prod`. (BUGS B-2026-05-29-1)
+
+
 ### Changed
 - **2026-05-26** — Error display unified across all 5 pages (sign-in / register / reset / change-password / authorization). New shared `src/parseError.ts` renders Pryv error envelopes consistently: walks `error.data` whether array (per-field validation messages like password format) or object (echoed payload from `invalid-request-structure`), appends the error `id`, and falls back to a JSON dump for unknown shapes so the UI is never silent on an unexpected error.
 - **2026-05-26** — `requestCmcScopeUpdate` now throws on failure (instead of returning `{ error }`), matching the rest of `authService` and letting the unified error-display pipeline handle it uniformly.
