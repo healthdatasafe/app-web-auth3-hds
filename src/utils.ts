@@ -26,16 +26,23 @@ export function redirectExternal (returnURL: string, accessState: AccessState | 
   if (accessState?.oaccessState) {
     let pollKey = ''
     if (accessState.key) {
-      pollKey = `&code=${accessState.key}`
+      pollKey = `&code=${encodeURIComponent(accessState.key)}`
     }
-    url += `state=${accessState.oaccessState}${pollKey}&poll=${pollUrl}`
+    url += `state=${encodeURIComponent(accessState.oaccessState)}${pollKey}&poll=${encodeURIComponent(pollUrl)}`
   } else {
-    url += `prYvpoll=${pollUrl}`
-    // Deprecated: pass access state params as query string
+    url += `prYvpoll=${encodeURIComponent(pollUrl)}`
+    // Deprecated: pass access state params as query string.
+    // Values MUST be URL-encoded: accessState.authUrl is a full URL whose
+    // raw `&key=…&poll=…` would otherwise splice into the caller's URL as
+    // top-level params. pryv-lib-js strips only `prYv*` params when it
+    // builds the next returnURL from location.href, so unencoded leftovers
+    // polluted the next auth round's returnURL (redirect then landed on
+    // `/&key=…` — unroutable, login lost). lib-js decodes each value via
+    // decodeURIComponent, so encoding is the expected wire format.
     if (accessState) {
       for (const [k, v] of Object.entries(accessState)) {
         if (typeof v === 'string' || typeof v === 'number') {
-          url += `&prYv${k}=${v}`
+          url += `&prYv${k}=${encodeURIComponent(String(v))}`
         }
       }
     }
