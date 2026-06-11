@@ -57,7 +57,7 @@ rm -rf distprod/docs/*
 cp -r dist/* distprod/docs/
 # Hidden files (e.g. .nojekyll) aren't matched by `dist/*` — copy explicitly.
 [ -f dist/.nojekyll ] && cp dist/.nojekyll distprod/docs/.nojekyll || touch distprod/docs/.nojekyll
-echo "account.datasafe.dev" > distprod/docs/CNAME
+echo "account.hds.ngo" > distprod/docs/CNAME
 
 # Generate settings.json (production environment)
 cat > distprod/docs/settings.json << SEOF
@@ -77,7 +77,7 @@ if ! ls distprod/docs/assets/index-*.js >/dev/null 2>&1; then
   echo "ERROR: no distprod/docs/assets/index-*.js found after build."
   exit 1
 fi
-EXPECTED_CNAME="account.datasafe.dev"
+EXPECTED_CNAME="account.hds.ngo"
 ACTUAL_CNAME="$(tr -d '[:space:]' < distprod/docs/CNAME)"
 if [ "$ACTUAL_CNAME" != "$EXPECTED_CNAME" ]; then
   echo "ERROR: distprod/docs/CNAME='$ACTUAL_CNAME' does not match expected '$EXPECTED_CNAME'."
