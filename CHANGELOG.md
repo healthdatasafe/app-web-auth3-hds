@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- Production deployment moved to `account.hds.ngo` (2026-06-11; was `account.datasafe.dev`, now retired). Platform auth URLs (defaultAuthUrl, passwordResetPageURL, trustedAuthUrls) updated accordingly.
+
 ### Fixed
 - `redirectExternal` now URL-encodes all appended params (2026-06-10). Unencoded `prYvauthUrl` (a full URL) leaked its `&key=…&poll=…` into the calling app's URL as top-level params; pryv-lib-js strips only `prYv*` params when building the next returnURL, so a sign-out → sign-in in the same tab redirected to an unroutable `/&key=…` URL and the login was lost.
 
