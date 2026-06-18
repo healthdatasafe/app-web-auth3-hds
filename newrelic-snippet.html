@@ -14,7 +14,7 @@
   the injection).
 -->
 <script type="text/javascript">
-;window.NREUM||(NREUM={});NREUM.init={distributed_tracing:{enabled:true},performance:{capture_measures:true},browser_consent_mode:{enabled:false},privacy:{cookies_enabled:true},ajax:{deny_list:["bam.eu01.nr-data.net"],capture_payloads:'none'}};
+;window.NREUM||(NREUM={});NREUM.init={distributed_tracing:{enabled:true},performance:{capture_measures:true},browser_consent_mode:{enabled:false},privacy:{cookies_enabled:true},ajax:{deny_list:["bam.eu01.nr-data.net"],capture_payloads:'none'},obfuscate:[{regex:"://[^@/]+@",replacement:"://***@"},{regex:"(auth|token|access_token|api_key|apiKey)=[^&#]+",replacement:"REDACTED"},{regex:"eyJ[\\w-]+\\.[\\w-]+\\.[\\w-]+",replacement:"***"}]};
 
 ;NREUM.loader_config={accountID:"7967896",trustKey:"7967896",agentID:"538862857",licenseKey:"NRJS-036282934d2064f7ffb",applicationID:"538862857"};
 ;NREUM.info={beacon:"bam.eu01.nr-data.net",errorBeacon:"bam.eu01.nr-data.net",licenseKey:"NRJS-036282934d2064f7ffb",applicationID:"538862857",sa:1};
